@@ -2,7 +2,7 @@ import { Rocket, Zap, TrendingUp, DollarSign } from 'lucide-react';
 
 export default function Home() {
   const stats = [
-    { label: "X Followers", value: "445", target: "450", color: "bg-blue-600" },
+    { label: "X Followers", value: "445", target: "450", color: "bg-brand" },
     { label: "Daily Renders", value: "15", target: "20", color: "bg-purple-600" },
     { label: "Income Goal", value: "$0", target: "$3k", color: "bg-emerald-600" },
   ];
@@ -11,12 +11,12 @@ export default function Home() {
     <div className="flex flex-col h-full md:p-12 space-y-12">
       {/* Header */}
       <section className="space-y-4">
-        <div className="inline-flex items-center space-x-2 bg-blue-500/10 border border-blue-500/20 px-4 py-1 rounded-full">
+        <div className="inline-flex items-center space-x-2 bg-brand/10 border border-brand/20 px-4 py-1 rounded-full">
             <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand/40 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand"></span>
             </span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">System Live</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-brand">System Live</span>
         </div>
         <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-none italic uppercase">
             Intelligence <br/> <span className="text-zinc-500">Command</span>

@@ -2,8 +2,8 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --font-space: "Space Grotesk", sans-serif;
-  --color-brand: #3b82f6;
+  --font-outfit: "Outfit", sans-serif;
+  --color-brand: #4fb7a0;
   --color-surface: #0a0a0a;
   --color-surface-hover: #141414;
 }
@@ -16,7 +16,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-space);
+  font-family: var(--font-outfit);
   -webkit-font-smoothing: antialiased;
 }
 

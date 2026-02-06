@@ -34,7 +34,7 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
                 </div>
                 <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-[0.9] uppercase italic">{doc.title}</h1>
                 {doc.date && (
-                    <time className="text-blue-500 font-mono text-sm block tracking-widest uppercase">{doc.date}</time>
+                    <time className="text-brand font-mono text-sm block tracking-widest uppercase">{doc.date}</time>
                 )}
             </header>
 

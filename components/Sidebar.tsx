@@ -20,7 +20,7 @@ export function Sidebar() {
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-zinc-900/50 backdrop-blur-md border-b border-white/5 z-50">
         <div className="flex items-center gap-2">
-          <div className="bg-blue-600 p-1.5 rounded-lg">
+          <div className="bg-brand p-1.5 rounded-lg">
             <Rocket size={18} className="text-white" />
           </div>
           <span className="font-black tracking-tighter text-xl">OZZY</span>
@@ -40,7 +40,7 @@ export function Sidebar() {
         {/* Toggle Collapse Button (Desktop Only) */}
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="hidden md:flex absolute -right-3 top-24 w-6 h-6 bg-zinc-800 border border-white/10 rounded-full items-center justify-center text-zinc-400 hover:text-white hover:bg-blue-600 transition-all z-50"
+          className="hidden md:flex absolute -right-3 top-24 w-6 h-6 bg-zinc-800 border border-white/10 rounded-full items-center justify-center text-zinc-400 hover:text-white hover:bg-brand transition-all z-50"
         >
           {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
@@ -48,7 +48,7 @@ export function Sidebar() {
         <div className={`p-8 hidden md:block transition-all ${isCollapsed ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}`}>
           {!isCollapsed && (
             <div className="flex items-center gap-3 mb-12">
-              <div className="bg-blue-600 p-2 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.4)]">
+              <div className="bg-brand p-2 rounded-xl shadow-[0_0_20px_rgba(79,183,160,0.4)]">
                 <Rocket size={24} className="text-white" />
               </div>
               <div>
@@ -62,7 +62,7 @@ export function Sidebar() {
         {/* Collapsed Icon (Desktop) */}
         {isCollapsed && (
           <div className="hidden md:flex flex-col items-center py-8 mb-4">
-             <div className="bg-blue-600 p-2 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.4)]">
+             <div className="bg-brand p-2 rounded-xl shadow-[0_0_20px_rgba(79,183,160,0.4)]">
                 <Rocket size={24} className="text-white" />
              </div>
           </div>
@@ -77,7 +77,7 @@ export function Sidebar() {
               className={`group flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl transition-all`}
               title={isCollapsed ? item.label : ''}
             >
-              <item.icon size={20} className="group-hover:text-blue-500 transition-colors flex-shrink-0" />
+              <item.icon size={20} className="group-hover:text-brand transition-colors flex-shrink-0" />
               {!isCollapsed && <span className="font-bold tracking-tight text-lg md:text-base">{item.label}</span>}
             </Link>
           ))}
@@ -85,7 +85,7 @@ export function Sidebar() {
 
         <div className="p-6 mt-auto border-t border-white/5">
           <div className={`glass p-4 rounded-2xl flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} transition-all`}>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex-shrink-0 flex items-center justify-center font-black italic">T</div>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand to-emerald-600 flex-shrink-0 flex items-center justify-center font-black italic">T</div>
             {!isCollapsed && (
               <div className="overflow-hidden">
                 <p className="font-bold text-sm truncate">Tony Simons</p>
