@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, Rocket, Activity, Calendar, Book, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Menu, X, Rocket, Activity, Calendar, Book, ChevronLeft, ChevronRight, BarChart3, Zap } from 'lucide-react';
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,6 +13,12 @@ export function Sidebar() {
     { label: 'Journal', href: '/docs/journal', icon: Calendar },
     { label: 'Concepts', href: '/docs/concepts', icon: Book },
     { label: 'Templates', href: '/docs/templates', icon: Rocket },
+  ];
+
+  const externalLinks = [
+    { label: 'Analytics', href: 'https://post.tonyreviewsthings.com', icon: BarChart3 },
+    { label: 'Amplify', href: 'https://amplify.tonyreviewsthings.com', icon: Zap },
+    { label: 'Status', href: 'https://status.tonyreviewsthings.com', icon: Activity },
   ];
 
   return (
@@ -80,6 +86,25 @@ export function Sidebar() {
               <item.icon size={20} className="group-hover:text-brand transition-colors flex-shrink-0" />
               {!isCollapsed && <span className="font-bold tracking-tight text-lg md:text-base">{item.label}</span>}
             </Link>
+          ))}
+
+          <div className="pt-8 pb-4">
+             {!isCollapsed && <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 mb-2">Network Control</p>}
+             <div className="h-px bg-white/5 mx-4 mb-4" />
+          </div>
+
+          {externalLinks.map((item) => (
+            <a 
+              key={item.label}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`group flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 text-zinc-500 hover:text-brand hover:bg-brand/5 rounded-xl transition-all`}
+              title={isCollapsed ? item.label : ''}
+            >
+              <item.icon size={20} className="group-hover:text-brand transition-colors flex-shrink-0" />
+              {!isCollapsed && <span className="font-bold tracking-tight text-lg md:text-base">{item.label}</span>}
+            </a>
           ))}
         </nav>
 
