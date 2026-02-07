@@ -53,7 +53,9 @@ export function getDocsByCategory(category: string): Doc[] {
       const slug = file.replace('.md', '');
 
       // Heuristic for title if not in frontmatter
-      let title = (data as any).title as string | undefined;
+      const fm = data as Record<string, unknown>;
+
+      let title = (fm.title as string | undefined) ?? undefined;
       if (!title) {
         const h1Match = content.match(/^#\s+(.+)$/m);
         title = h1Match ? h1Match[1] : slug.replace(/-/g, ' ');
@@ -63,11 +65,11 @@ export function getDocsByCategory(category: string): Doc[] {
         slug,
         category,
         title,
-        date: (data as any).date,
+        date: fm.date as string | undefined,
         content,
         excerpt: content.slice(0, 140).replace(/#/g, '').trim() + '...',
         // Add extra metadata (renders, etc.)
-        ...(data as any),
+        ...(fm as Partial<Doc>),
       } satisfies Doc;
     })
     .sort((a, b) => {
@@ -89,8 +91,9 @@ export function getDoc(category: string, slug: string): Doc | null {
 
     const fileContent = fs.readFileSync(filePath, 'utf-8');
     const { data, content } = matter(fileContent);
+    const fm = data as Record<string, unknown>;
 
-    let title = (data as any).title as string | undefined;
+    let title = (fm.title as string | undefined) ?? undefined;
     if (!title) {
       const h1Match = content.match(/^#\s+(.+)$/m);
       title = h1Match ? h1Match[1] : slug.replace(/-/g, ' ');
@@ -100,9 +103,9 @@ export function getDoc(category: string, slug: string): Doc | null {
       slug,
       category,
       title,
-      date: (data as any).date,
+      date: fm.date as string | undefined,
       content,
-      ...(data as any),
+      ...(fm as Partial<Doc>),
     } as Doc;
   } catch {
     return null;
@@ -119,14 +122,18 @@ export function getAllDocs(): Doc[] {
 }
 
 export function getRecentDocs(limit = 12): Doc[] {
-  return getAllDocs()
-    .map((d) => ({
-      ...d,
-      _ts: d.date ? new Date(d.date).getTime() : fs.statSync(path.join(BRAIN_DIR, d.category, `${d.slug}.md`)).mtimeMs,
-    }))
-    .sort((a: any, b: any) => b._ts - a._ts)
+  const all = getAllDocs();
+  const withTs = all.map((d) => {
+    const ts = d.date
+      ? new Date(d.date).getTime()
+      : fs.statSync(path.join(BRAIN_DIR, d.category, `${d.slug}.md`)).mtimeMs;
+    return { doc: d, ts };
+  });
+
+  return withTs
+    .sort((a, b) => b.ts - a.ts)
     .slice(0, limit)
-    .map(({ _ts, ...rest }: any) => rest);
+    .map((x) => x.doc);
 }
 
 export function getAllPaletteItems(): PaletteItem[] {
