@@ -2,14 +2,28 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
+  /* Typography */
   --font-outfit: "Outfit", sans-serif;
-  --color-brand: #4fb7a0;
-  --color-surface: #0a0a0a;
-  --color-surface-hover: #141414;
+
+  /* Obsidian Teal: Industrial Command */
+  --color-obsidian: #020202;
+  --color-surface-low: #080808;
+  --color-surface-med: #0d0d0d;
+  --color-surface-high: #141414;
+
+  /* Primary accent */
+  --color-brand: #00f2ff;
+  --color-brand-muted: #008b8b;
+
+  /* Legacy accent (keep for continuity) */
+  --color-brand-legacy: #4fb7a0;
+
+  --color-hazard: #ffd700;
+  --color-status: #39ff14;
 }
 
 :root {
-  --background: #050505;
+  --background: var(--color-obsidian);
   --foreground: #fafafa;
 }
 
@@ -20,12 +34,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Glassmorphism utility */
+/* Glassmorphism utility (industrial) */
 .glass {
-  background: rgba(20, 20, 20, 0.6);
+  background: color-mix(in oklab, var(--color-surface-med) 75%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+/* Focus ring standard */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 242, 255, 0.35), 0 0 0 6px rgba(2, 2, 2, 1);
 }
 
 /* Noise texture overlay */

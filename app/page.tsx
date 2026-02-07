@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Activity, Rocket, Zap, TrendingUp, BookOpen, Calendar, ExternalLink } from 'lucide-react';
+import { Activity, Rocket, Zap, TrendingUp, BookOpen, Calendar, ExternalLink, Clock } from 'lucide-react';
+import { getRecentDocs } from '@/lib/brain';
 
 const tiles = [
   {
@@ -12,7 +13,7 @@ const tiles = [
   {
     title: 'Video Renders',
     desc: 'All generated clips, ready to post',
-    href: '/docs/renders',
+    href: '/renders',
     icon: TrendingUp,
     accent: 'from-purple-500/25 to-brand/10',
   },
@@ -65,6 +66,8 @@ const external = [
 ];
 
 export default function Home() {
+  const recent = getRecentDocs(10);
+
   return (
     <div className="flex flex-col h-full md:p-12 space-y-12">
       <section className="space-y-4">
@@ -107,27 +110,59 @@ export default function Home() {
         ))}
       </section>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {external.map((x) => (
-          <a
-            key={x.title}
-            href={x.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group glass p-6 rounded-[32px] border-white/5 hover:bg-white/10 transition-all"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-black uppercase tracking-widest text-zinc-500">External</p>
-                <h4 className="text-xl font-black tracking-tight group-hover:text-brand transition-colors">
-                  {x.title}
-                </h4>
-                <p className="text-sm text-zinc-500 font-medium mt-1">{x.desc}</p>
+      <section className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {external.map((x) => (
+            <a
+              key={x.title}
+              href={x.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group glass p-6 rounded-[32px] border-white/5 hover:bg-white/10 transition-all"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-zinc-500">External</p>
+                  <h4 className="text-xl font-black tracking-tight group-hover:text-brand transition-colors">
+                    {x.title}
+                  </h4>
+                  <p className="text-sm text-zinc-500 font-medium mt-1">{x.desc}</p>
+                </div>
+                <ExternalLink size={18} className="text-zinc-600 group-hover:text-brand transition-colors" />
               </div>
-              <ExternalLink size={18} className="text-zinc-600 group-hover:text-brand transition-colors" />
+            </a>
+          ))}
+        </div>
+
+        <div className="glass p-6 rounded-[32px] border-white/5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                <Clock size={14} className="text-brand" />
+                Recent Activity
+              </p>
+              <p className="text-[11px] font-mono text-zinc-600 mt-1">Latest things Ozzy created</p>
             </div>
-          </a>
-        ))}
+          </div>
+
+          <div className="space-y-2">
+            {recent.map((d) => (
+              <Link
+                key={`${d.category}/${d.slug}`}
+                href={`/docs/${encodeURIComponent(d.category)}/${encodeURIComponent(d.slug)}`}
+                className="block p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-bold text-zinc-200 truncate">{d.title}</div>
+                    <div className="text-[10px] font-mono text-zinc-600 truncate">{d.category} • {d.date ?? d.slug}</div>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">Open</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
       </section>
     </div>
   );

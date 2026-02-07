@@ -11,7 +11,7 @@ export function Sidebar() {
   const navItems = [
     { label: 'Dashboard', href: '/', icon: Activity },
     { label: 'Briefs', href: '/docs/briefs', icon: Rocket },
-    { label: 'Renders', href: '/docs/renders', icon: TrendingUp },
+    { label: 'Renders', href: '/renders', icon: TrendingUp },
     { label: 'Ideas', href: '/docs/ideas', icon: Zap },
     { label: 'Newsletter Drafts', href: '/docs/newsletter-drafts', icon: Book },
     { label: 'Journal', href: '/docs/journal', icon: Calendar },
