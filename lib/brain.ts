@@ -7,11 +7,21 @@ const BRAIN_DIR = path.join(process.cwd(), 'content');
 
 export interface Doc {
   slug: string;
-  category: string; // 'journal' | 'concepts'
+  category: string;
   title: string;
   date?: string;
   content: string;
   excerpt?: string;
+  // Render specific metadata
+  type?: 'trend' | 'captions' | 'experiment';
+  video?: string;
+  thumbnail?: string;
+  prompt?: string;
+  model?: string;
+  seed?: number;
+  tags?: string[];
+  brief?: string;
+  journal?: string;
 }
 
 export function getCategories() {
@@ -46,11 +56,18 @@ export function getDocsByCategory(category: string): Doc[] {
       title,
       date: data.date,
       content,
-      excerpt: content.slice(0, 100).replace(/#/g, '') + '...'
+      excerpt: content.slice(0, 100).replace(/#/g, '') + '...',
+      // Add extra metadata
+      ...data
     };
   }).sort((a, b) => {
-      // Sort journals by date desc, concepts alpha
-      if (category === 'journal') return b.slug.localeCompare(a.slug);
+      // Sort renders and journals by date desc
+      if (category === 'journal' || category === 'renders') {
+        const dateA = a.date ? new Date(a.date).getTime() : 0;
+        const dateB = b.date ? new Date(b.date).getTime() : 0;
+        if (dateA !== dateB) return dateB - dateA;
+        return b.slug.localeCompare(a.slug);
+      }
       return a.slug.localeCompare(b.slug);
   });
 }
@@ -75,6 +92,7 @@ export function getDoc(category: string, slug: string): Doc | null {
       title,
       date: data.date,
       content,
+      ...data
     };
   } catch (e) {
     return null;
