@@ -1,6 +1,8 @@
 import { getDoc, getCategories, getDocsByCategory } from '@/lib/brain';
 import { notFound } from 'next/navigation';
 import Markdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
+import rehypeSanitize from 'rehype-sanitize';
 
 export async function generateStaticParams() {
   const categories = getCategories();
@@ -39,11 +41,34 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
             </header>
 
             <article className="prose prose-invert prose-zinc max-w-none glass p-6 md:p-12 rounded-[32px] md:rounded-[48px] border-white/5">
-                <Markdown>{doc.content}</Markdown>
+                <Markdown
+                  rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                  components={{
+                    video: ({ ...props }) => (
+                      <video
+                        {...props}
+                        className="w-full rounded-2xl border border-white/10 shadow-xl"
+                        controls
+                      />
+                    ),
+                    a: ({ ...props }) => (
+                      <a
+                        {...props}
+                        className="text-brand underline underline-offset-4 hover:opacity-80 transition-opacity"
+                        target={props.href?.startsWith('http') ? '_blank' : undefined}
+                        rel={props.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+                      />
+                    ),
+                  }}
+                >
+                  {doc.content}
+                </Markdown>
             </article>
 
             <footer className="mt-12 pt-12 border-t border-white/5 flex items-center justify-between opacity-30">
-                <p className="text-xs font-mono tracking-widest uppercase truncate">{category} // {doc.slug}</p>
+                <p className="text-xs font-mono tracking-widest uppercase truncate">
+                  {category} <span aria-hidden>{' // '}</span> {doc.slug}
+                </p>
                 <span className="font-black italic text-lg tracking-tighter">OZZY</span>
             </footer>
         </div>

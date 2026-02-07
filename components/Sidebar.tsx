@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, Rocket, Activity, Calendar, Book, ChevronLeft, ChevronRight, BarChart3, Zap } from 'lucide-react';
+import { Menu, X, Rocket, Activity, Calendar, Book, ChevronLeft, ChevronRight, BarChart3, Zap, TrendingUp } from 'lucide-react';
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,12 +10,17 @@ export function Sidebar() {
   
   const navItems = [
     { label: 'Dashboard', href: '/', icon: Activity },
+    { label: 'Briefs', href: '/docs/briefs', icon: Rocket },
+    { label: 'Renders', href: '/docs/renders', icon: TrendingUp },
+    { label: 'Ideas', href: '/docs/ideas', icon: Zap },
+    { label: 'Newsletter Drafts', href: '/docs/newsletter-drafts', icon: Book },
     { label: 'Journal', href: '/docs/journal', icon: Calendar },
     { label: 'Concepts', href: '/docs/concepts', icon: Book },
     { label: 'Templates', href: '/docs/templates', icon: Rocket },
   ];
 
   const externalLinks = [
+    { label: 'Captions App', href: 'https://captions.tonyreviewsthings.com', icon: Rocket },
     { label: 'Analytics', href: 'https://post.tonyreviewsthings.com', icon: BarChart3 },
     { label: 'Amplify', href: 'https://amplify.tonyreviewsthings.com', icon: Zap },
     { label: 'Status', href: 'https://status.tonyreviewsthings.com', icon: Activity },

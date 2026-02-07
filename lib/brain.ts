@@ -94,7 +94,7 @@ export function getDoc(category: string, slug: string): Doc | null {
       content,
       ...data
     };
-  } catch (e) {
+  } catch {
     return null;
   }
 }
