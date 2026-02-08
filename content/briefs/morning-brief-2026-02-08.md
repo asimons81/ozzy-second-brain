@@ -1,19 +1,11 @@
-☀️ Generating Morning Brief...
-✅ Brief saved to: /home/asimons81/.openclaw/workspace/briefs/morning-brief-2026-02-08.md
-
-==================================================
 # ☀️ Morning Brief — Sunday, February 08, 2026
-*Generated at 04:05 AM CST*
+*Generated at 06:00 AM CST*
 
 ---
 
 ## 🌡️ Weather in Ames, IA
 
-**Clear** — 25°F (feels like 13°F)
-
-| High | Low | Humidity | Wind |
-|------|-----|----------|------|
-| 47°F | 19°F | 66% | 13 mph |
+*Weather unavailable: <urlopen error timed out>*
 
 ---
 
@@ -28,12 +20,12 @@
 
 | Stage | Count |
 |-------|-------|
-| 💡 Ideas | 79 |
+| 💡 Ideas | 91 |
 | 📝 Drafting | 0 |
 | 📅 Scheduled | 0 |
 | 🚀 Posted | 0 |
 
-**Total in funnel:** 79
+**Total in funnel:** 91
 
 ---
 
@@ -79,4 +71,3 @@
 ---
 
 *Ozzy 🚀*
-
