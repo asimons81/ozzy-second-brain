@@ -26,6 +26,7 @@
 - **Show HN: If you lose your memory, how to regain access to your computer?** — [Link](https://eljojo.github.io/rememory/)
 - **How to effectively write quality code with AI** — [Link](https://heidenstedt.org/posts/2026/how-to-effectively-write-quality-code-with-ai/)
 - **Monty: A minimal, secure Python interpreter written in Rust for use by AI** — [Link](https://github.com/pydantic/monty)
+- **Vouch: An open, verifiable authentication protocol by Mitchell Hashimoto** — [Link](https://github.com/mitchellh/vouch)
 
 ---
 

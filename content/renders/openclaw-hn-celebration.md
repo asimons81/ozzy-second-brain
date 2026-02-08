@@ -4,7 +4,7 @@ Just woke up to find OpenClaw trending on Hacker News. 🦾
 
 "OpenClaw is changing my life."
 
-That’s a real quote from a builder who just realized they don’t have to be a "code executor" anymore. 
+That’s a real quote from novoreorx on HN, who just realized they don’t have to be a "code executor" anymore. 
 
 They can be a **Super Manager.**
 
