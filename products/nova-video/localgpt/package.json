@@ -1,0 +1,24 @@
+{
+  "name": "localgpt-video",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "remotion preview src/index.ts",
+    "build": "remotion render src/index.ts LocalGPT out/video.mp4"
+  },
+  "dependencies": {
+    "remotion": "4.0.223",
+    "@remotion/cli": "4.0.223",
+    "@remotion/renderer": "4.0.223",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.363.0",
+    "shiki": "^1.1.7"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}
