@@ -40,8 +40,12 @@
 - **Verification Scripting**: A simple `god-mode-check.sh` benchmarking CPU/RAM/GPU/Disk gives the user instant gratification and verification of their hardware upgrade.
 
 ### 2026-02-09 - Brain Sync & Git Hygiene
-- **Nested Repos**: Embedded `.git` folders in subdirectories (like `node_modules` or sub-projects) block top-level `git stash` and `git pull --rebase`. Flatten the structure by removing embedded `.git` metadata to maintain a unified brain.
+- **Nested Repos**: Embedded `.git` folders in subdirectories (like `node_modules` or sub-projects) block top-level `git stash` and `git pull --rebase`. Flattening the structure (removing `.git`) is necessary but **risky**: it can silently break running services (like dashboards/daemons) if they rely on specific git states or file paths. Always stop services before major refactors.
 - **Node Modules Tracking**: Ensure `.gitignore` uses `node_modules/` (not `/node_modules`) to ignore dependencies in all sub-levels and prevent large binary bloat from hitting GitHub limits.
+
+### 2026-02-09 - Security Patching (Link Previews)
+- **Vulnerability**: Data exfiltration via messaging app "link previews." Maliciously formatted URLs can trick apps like Telegram/Slack into fetching previews that append sensitive data to an attacker's server.
+- **Fix**: Disable link previews in the agent configuration (`channels.<name>.linkPreview = false`).
 
 ---
 
@@ -60,7 +64,8 @@
 - **Hacker News (2026-02-08)**: OpenClaw trended on Hacker News (#16) with a major user endorsement ("OpenClaw is changing my life").
 - **NOVA (Video Agent)**: Successfully launched as the specialist video production employee. Developed a Cyber-Industrial aesthetic (OLED Black/Neon Teal) using Remotion. First production: "LocalGPT in Rust."
 - **SmugMug Migration (2026-02-07)**: Successfully migrated 3,493/3,495 photos to Google Photos using a custom headless CLI migrator. Migration completed on 2026-02-08. Status: COMPLETE.
-- **Gateway Stability**: Fixed persistent `undici` TLS crash loop and service path issues.
+- **Gateway Stability**: Fixed persistent `undici` TLS crash loop and service path issues. Quota Dashboard (Port 3000) and daemon restored after accidental project flattening.
+- **Migration (God Mode)**: Ozzy (Strategist/Chromebook) + Sid (Compute/Gaming Rig). Unified "Shared Brain" repo (`ozzy-second-brain`) successfully established.
 
 ---
 
