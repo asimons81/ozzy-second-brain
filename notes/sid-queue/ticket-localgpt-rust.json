@@ -1,0 +1,19 @@
+{
+  "id": "job-20260209-2030",
+  "task": "render-video",
+  "priority": "high",
+  "data": {
+    "composition": "ReviewerUltra",
+    "props": {
+      "title": "LocalGPT: High-Performance AI in Rust",
+      "verdict": "THE NEW GOLD STANDARD FOR LOCAL MEMORY",
+      "rating": "9.8",
+      "tag": "LOCAL-FIRST BREAKTHROUGH",
+      "accentColor": "#00F2FF"
+    },
+    "output_name": "localgpt-rust-breakthrough.mp4"
+  },
+  "created_at": "2026-02-09T20:30:00Z",
+  "status": "pending",
+  "assigned_to": "sid"
+}
