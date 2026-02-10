@@ -22,6 +22,9 @@ export interface Doc {
   tags?: string[];
   brief?: string;
   journal?: string;
+  score?: number | string;
+  source?: string;
+  url?: string;
 }
 
 export interface PaletteItem {

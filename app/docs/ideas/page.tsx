@@ -1,6 +1,6 @@
 import { getDocsByCategory } from '@/lib/brain';
 import { IdeaCard } from '@/components/IdeaCard';
-import { Sparkles, Trash2, Filter } from 'lucide-react';
+import { Sparkles, Trash2, Filter, Clock } from 'lucide-react';
 
 export default async function IdeasPage() {
   const allIdeas = getDocsByCategory('ideas');
@@ -78,24 +78,5 @@ export default async function IdeasPage() {
         </div>
       </footer>
     </div>
-  );
-}
-
-function Clock({ size, className }: { size?: number, className?: string }) {
-  return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-    </svg>
   );
 }
