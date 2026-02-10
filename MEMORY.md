@@ -52,11 +52,13 @@
 ## Ongoing Context
 
 ### Active Projects
-- **Mac Mini Challenge**: Goal: Earn $1,200 by April 1, 2026 via monetization (Tool Takedown newsletter, Ozzy Captions licenses, NOVA videos).
+- **Mac Mini Challenge**: Goal: Earn $1,200 by April 1, 2026 via monetization (Vertical Skills, Ozzy Captions licenses).
+- **The Sovereign AI Stack**: Strategy to provide one-click OpenClaw/Local AI setup and sell high-value "Vertical Skills" (e.g., LocalTube).
 - **New Architecture**:
   - **Ozzy (Me)**: Strategy/Content/Coordination (Chromebook).
   - **Sid (New Agent)**: Heavy Compute/Rendering/Local LLMs (Gaming Rig).
 - **Collaboration**: Shared Brain repo (`ozzy-second-brain`) using a "Job Ticket" protocol in `notes/sid-queue/`.
+- **Ideas Pipeline**: Mission Control UI implemented at `/docs/ideas`. Approval triggers automatic Job Tickets for Sid.
 - **Local LLM**: Llama 3.2 3B installed via Ollama. Accepted that 8B+ models will be the target for the new desktop hardware.
 - **Ozzy Captions**: React/Next.js tool. Strategy: Hybrid Model. Status: Audit complete, build fixed, market-ready.
 
