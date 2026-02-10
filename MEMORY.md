@@ -47,6 +47,10 @@
 - **Vulnerability**: Data exfiltration via messaging app "link previews." Maliciously formatted URLs can trick apps like Telegram/Slack into fetching previews that append sensitive data to an attacker's server.
 - **Fix**: Disable link previews in the agent configuration (`channels.<name>.linkPreview = false`).
 
+### 2026-02-10 - Agent Config Isolation
+- **Mistake**: Syncing the core `openclaw.json` between different hardware instances (Chromebook vs. Gaming Rig) caused Sid's local Ollama/GPU configuration to be overwritten, breaking his connection to local models.
+- **Correction**: Exclude hardware-specific configs from shared repo sync. Agents should share the "Soul" (instructions/mission) and "Journal" (history), but maintain unique "Identities" and "Hardware" profiles.
+
 ---
 
 ## Ongoing Context
@@ -56,11 +60,11 @@
 - **The Sovereign AI Stack**: Strategy to provide one-click OpenClaw/Local AI setup and sell high-value "Vertical Skills" (e.g., LocalTube).
 - **New Architecture**:
   - **Ozzy (Me)**: Strategy/Content/Coordination (Chromebook).
-  - **Sid (New Agent)**: Heavy Compute/Rendering/Local LLMs (Gaming Rig).
+  - **Sid (New Agent)**: Heavy Compute/Rendering/Local LLMs (Gaming Rig). Target model: Qwen 2.5 Coder 7B/32B via LM Studio.
 - **Collaboration**: Shared Brain repo (`ozzy-second-brain`) using a "Job Ticket" protocol in `notes/sid-queue/`.
 - **Ideas Pipeline**: Mission Control UI implemented at `/docs/ideas`. Approval triggers automatic Job Tickets for Sid.
-- **Local LLM**: Llama 3.2 3B installed via Ollama. Accepted that 8B+ models will be the target for the new desktop hardware.
-- **Ozzy Captions**: React/Next.js tool. Strategy: Hybrid Model. Status: Audit complete, build fixed, market-ready.
+- **Local LLM**: Llama 3.2 3B installed via Ollama. Pivoting to LM Studio + Qwen 2.5 Coder for better stability and tool use on Windows.
+- **Ozzy Captions**: React/Next.js tool. Strategy: Hybrid Model. Status: Audit complete, build fixed, market-ready. Added headless marketing automation (`x-amplify/headless.py`).
 
 - **Trend Sniping**: Hourly automated X engagement for OpenClaw/AI Agent trends.
 - **Hacker News (2026-02-08)**: OpenClaw trended on Hacker News (#16) with a major user endorsement ("OpenClaw is changing my life").
@@ -68,6 +72,7 @@
 - **SmugMug Migration (2026-02-07)**: Successfully migrated 3,493/3,495 photos to Google Photos using a custom headless CLI migrator. Migration completed on 2026-02-08. Status: COMPLETE.
 - **Gateway Stability**: Fixed persistent `undici` TLS crash loop and service path issues. Quota Dashboard (Port 3000) and daemon restored after accidental project flattening.
 - **Migration (God Mode)**: Ozzy (Strategist/Chromebook) + Sid (Compute/Gaming Rig). Unified "Shared Brain" repo (`ozzy-second-brain`) successfully established.
+- **Ideas Mission Control**: Next.js dashboard at `/docs/ideas` for filtering, approving, and delegating trends to Sid.
 
 ---
 
