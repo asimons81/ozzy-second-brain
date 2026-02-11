@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { Activity, Rocket, Zap, TrendingUp, BookOpen, Calendar, ExternalLink, Clock } from 'lucide-react';
 import { getRecentDocs } from '@/lib/brain';
 
+export const dynamic = 'force-dynamic';
+
 const tiles = [
   {
     title: 'Morning Briefs',

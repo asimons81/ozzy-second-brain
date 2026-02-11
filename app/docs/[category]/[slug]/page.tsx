@@ -4,6 +4,8 @@ import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateStaticParams() {
   const categories = getCategories();
   const params: { category: string; slug: string }[] = [];

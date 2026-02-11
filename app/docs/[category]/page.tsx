@@ -2,6 +2,8 @@ import { getDocsByCategory, getCategories } from '@/lib/brain';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateStaticParams() {
   const categories = getCategories();
   return categories.map((category) => ({
