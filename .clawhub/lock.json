@@ -32,6 +32,26 @@
     "skill-scanner": {
       "version": "0.1.2",
       "installedAt": 1770786368550
+    },
+    "free-ai-prompt-generator-for-chatgpt-gemini-more-q-6e800b2c": {
+      "version": "1.0.0",
+      "installedAt": 1770816399910
+    },
+    "test-curl": {
+      "version": "1.0.0",
+      "installedAt": 1770816412263
+    },
+    "ai-lead-generator-skill": {
+      "version": "1.0.0",
+      "installedAt": 1770816422408
+    },
+    "agentx-marketplace": {
+      "version": "1.0.0",
+      "installedAt": 1770816434647
+    },
+    "openclaw-token-optimizer": {
+      "version": "1.2.7",
+      "installedAt": 1770821018071
     }
   }
 }
