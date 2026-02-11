@@ -13,7 +13,10 @@ Before doing anything else:
 1. Read `SOUL.md` — this is who you are
 2. Read `USER.md` — this is who you're helping
 3. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
-4. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
+4. **ONLY IF NECESSARY**: Read `MEMORY.md` if the user is asking about long-term goals or prior work.
+5. **SKIP LARGE DOCS**: Do not read files in `docs/` or deep workspace folders unless explicitly requested or needed for a technical fix.
+6. **📊 COMPACTION WATCH**: Run `📊 session_status` every turn. If context usage is **>80%**, WARN the user and recommend a manual compaction or fresh session.
+7. **CHEAP CHAT**: For greetings, acknowledgments, or short replies, keep the response brief to save tokens.
 
 Don't ask permission. Just do it.
 

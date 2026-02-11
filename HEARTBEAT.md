@@ -21,3 +21,6 @@ Read this file if it exists. Follow it strictly. If nothing needs attention, rep
 
 ## 💓 Proactive Heartbeat State
 See `memory/heartbeat-state.json` for last check timestamps.
+Before running any check, run `python skills/openclaw-token-optimizer/scripts/heartbeat_optimizer.py plan`.
+If nothing is planned, reply HEARTBEAT_OK immediately.
+Model Override: Use `google-antigravity/gemini-2.5-flash-lite` for all heartbeats to save tokens.
