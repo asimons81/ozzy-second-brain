@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "skills": {
+    "proactive-agent-1-2-4": {
+      "version": "1.0.0",
+      "installedAt": 1770785827268
+    },
+    "restart-guard": {
+      "version": "1.1.0",
+      "installedAt": 1770786141377
+    },
+    "proc-monitor": {
+      "version": "1.0.0",
+      "installedAt": 1770786168514
+    },
+    "openclaw-auto-updater": {
+      "version": "1.0.0",
+      "installedAt": 1770786240330
+    },
+    "openclaw-anything": {
+      "version": "1.0.1",
+      "installedAt": 1770786271746
+    },
+    "moltbot-security": {
+      "version": "1.0.2",
+      "installedAt": 1770786302815
+    },
+    "uptime-monitor": {
+      "version": "1.0.0",
+      "installedAt": 1770786348213
+    },
+    "skill-scanner": {
+      "version": "0.1.2",
+      "installedAt": 1770786368550
+    }
+  }
+}
