@@ -192,7 +192,7 @@ export function getStorageRuntimeInfo(): StorageRuntimeInfo {
     dataDir,
     isEphemeral,
     warningBanner: isEphemeral
-      ? 'Read-only / ephemeral mode: configure persistent storage to enable saving.'
+      ? 'Ephemeral storage: saves may not persist after redeploy/cold start. Configure persistent storage for durable saves.'
       : null,
   };
 }

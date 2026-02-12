@@ -1,167 +1,210 @@
 import Link from 'next/link';
-import { Activity, Rocket, Zap, TrendingUp, BookOpen, Calendar, ExternalLink, Clock } from 'lucide-react';
-import { getRecentDocs } from '@/lib/brain';
+import { Clock3, ExternalLink, Layers, ListTodo, Server, Sparkles, Ticket } from 'lucide-react';
+import { getActivitySnapshot } from '@/lib/activity';
+import { readRecents, getStorageRuntimeInfo } from '@/lib/storage';
+import { readApprovedIdeas, readSidTickets } from '@/lib/pipeline';
 
 export const dynamic = 'force-dynamic';
 
-const tiles = [
-  {
-    title: 'Morning Briefs',
-    desc: 'Daily intel + action items',
-    href: '/docs/briefs',
-    icon: Rocket,
-    accent: 'from-brand/30 to-emerald-500/10',
-  },
-  {
-    title: 'Video Renders',
-    desc: 'All generated clips, ready to post',
-    href: '/renders',
-    icon: TrendingUp,
-    accent: 'from-purple-500/25 to-brand/10',
-  },
-  {
-    title: 'Ideas Funnel',
-    desc: 'HN-scouted ideas + drafts pipeline',
-    href: '/docs/ideas',
-    icon: Zap,
-    accent: 'from-yellow-500/20 to-brand/10',
-  },
-  {
-    title: 'Journal',
-    desc: 'Daily log of what shipped',
-    href: '/docs/journal',
-    icon: Calendar,
-    accent: 'from-blue-500/20 to-brand/10',
-  },
-  {
-    title: 'Newsletter Drafts',
-    desc: 'Long-form compilation staging',
-    href: '/docs/newsletter-drafts',
-    icon: BookOpen,
-    accent: 'from-zinc-500/20 to-brand/10',
-  },
-  {
-    title: 'System Concepts',
-    desc: 'Strategy + architecture docs',
-    href: '/docs/concepts',
-    icon: Activity,
-    accent: 'from-zinc-800/40 to-brand/10',
-  },
-];
+function ts(value: string) {
+  return new Date(value).getTime();
+}
 
-const external = [
-  {
-    title: 'Ozzy Captions',
-    desc: 'Caption pipeline UI',
-    href: 'https://captions.tonyreviewsthings.com',
-  },
-  {
-    title: 'Status',
-    desc: 'Uptime + quotas',
-    href: 'https://status.tonyreviewsthings.com',
-  },
-  {
-    title: 'Analytics',
-    desc: 'Post performance',
-    href: 'https://post.tonyreviewsthings.com',
-  },
-];
+function fmt(iso: string) {
+  return new Date(iso).toLocaleString();
+}
 
-export default function Home() {
-  const recent = getRecentDocs(10);
+export default function NowPage() {
+  const storage = getStorageRuntimeInfo();
+  const recents = readRecents(10);
+  const tickets = readSidTickets();
+  const queueTop = tickets.slice(0, 10);
+  const openTickets = tickets.filter((ticket) => ticket.derivedStatus === 'pending');
+  const approvedPending = readApprovedIdeas().filter((idea) => !idea.outputExists);
+  const activity = getActivitySnapshot(200);
+
+  const lastCandidates = [
+    ...(activity.lastActivityIso ? [activity.lastActivityIso] : []),
+    ...recents.map((item) => item.modifiedAt),
+    ...tickets.map((item) => item.createdAt),
+    ...approvedPending.map((item) => item.modifiedAt),
+  ];
+  const lastActivity = lastCandidates.sort((a, b) => ts(b) - ts(a))[0] ?? null;
+
+  const systems = [
+    { label: 'Now', href: '/' },
+    { label: 'Quota', href: 'https://status.tonyreviewsthings.com' },
+    { label: 'Captions', href: 'https://captions.tonyreviewsthings.com' },
+    { label: 'Analytics', href: 'https://post.tonyreviewsthings.com' },
+  ];
 
   return (
-    <div className="flex flex-col h-full md:p-12 space-y-12">
+    <div className="max-w-6xl mx-auto py-8 md:py-16 px-4 md:px-10 space-y-8">
       <section className="space-y-4">
-        <div className="inline-flex items-center space-x-2 bg-brand/10 border border-brand/20 px-4 py-1 rounded-full">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand/40 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-brand"></span>
-          </span>
-          <span className="text-[10px] font-black uppercase tracking-widest text-brand">System Live</span>
-        </div>
-        <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-none italic uppercase">
-          Brain <br /> <span className="text-zinc-500">Dashboard</span>
-        </h2>
-        <p className="text-zinc-400 max-w-2xl font-medium">
-          One place to see everything Ozzy creates: briefs, drafts, renders, journals, and the tools that ship it.
-        </p>
-      </section>
-
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {tiles.map((t) => (
-          <Link
-            key={t.title}
-            href={t.href}
-            className="group glass p-6 rounded-[32px] border-white/5 hover:bg-white/10 transition-all relative overflow-hidden"
-          >
-            <div className={`absolute inset-0 bg-gradient-to-br ${t.accent} opacity-0 group-hover:opacity-100 transition-opacity`} />
-            <div className="relative z-10 space-y-3">
-              <div className="flex items-center justify-between">
-                <t.icon size={20} className="text-brand" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Open</span>
-              </div>
-              <div>
-                <h3 className="text-2xl font-black italic tracking-tight group-hover:text-brand transition-colors">
-                  {t.title}
-                </h3>
-                <p className="text-sm text-zinc-500 font-medium mt-1">{t.desc}</p>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </section>
-
-      <section className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {external.map((x) => (
-            <a
-              key={x.title}
-              href={x.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group glass p-6 rounded-[32px] border-white/5 hover:bg-white/10 transition-all"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-widest text-zinc-500">External</p>
-                  <h4 className="text-xl font-black tracking-tight group-hover:text-brand transition-colors">
-                    {x.title}
-                  </h4>
-                  <p className="text-sm text-zinc-500 font-medium mt-1">{x.desc}</p>
-                </div>
-                <ExternalLink size={18} className="text-zinc-600 group-hover:text-brand transition-colors" />
-              </div>
-            </a>
-          ))}
+        <div className="inline-flex items-center gap-2 bg-brand/10 border border-brand/20 px-4 py-1 rounded-full">
+          <Sparkles size={13} className="text-brand" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-brand">Now Dashboard</span>
         </div>
 
-        <div className="glass p-6 rounded-[32px] border-white/5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-xs font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
-                <Clock size={14} className="text-brand" />
-                Recent Activity
-              </p>
-              <p className="text-[11px] font-mono text-zinc-600 mt-1">Latest things Ozzy created</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="glass rounded-2xl border-white/5 p-4">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Storage Mode</div>
+            <div className="text-lg font-black tracking-tight mt-2">{storage.isEphemeral ? 'Ephemeral' : 'Local'}</div>
+            <div className="text-xs text-zinc-500 mt-1">{storage.dataDir}</div>
+          </div>
+          <div className="glass rounded-2xl border-white/5 p-4">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Last Activity</div>
+            <div className="text-lg font-black tracking-tight mt-2">{lastActivity ? fmt(lastActivity) : 'No activity yet'}</div>
+            <div className="text-xs text-zinc-500 mt-1">Merged from notes, tickets, renders, and approvals</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-6">
+        <div className="glass rounded-2xl border-white/5 p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Layers size={16} className="text-brand" />
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-300">Active</h2>
             </div>
+            <Link href="/queue" className="text-[11px] font-mono text-zinc-500 hover:text-brand">
+              See all
+            </Link>
           </div>
 
           <div className="space-y-2">
-            {recent.map((d) => (
+            {approvedPending.length === 0 && openTickets.length === 0 && (
+              <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-zinc-500">
+                No active approvals or open Sid tickets.
+              </div>
+            )}
+
+            {approvedPending.slice(0, 5).map((idea) => (
+              <div key={`approved-${idea.slug}`} className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-bold text-zinc-100 truncate">{idea.title}</div>
+                  <div className="text-[11px] font-mono text-zinc-600 mt-1">Approved idea awaiting output</div>
+                </div>
+                <Link href={idea.href} className="text-xs font-black uppercase tracking-widest text-brand hover:opacity-80">
+                  Open
+                </Link>
+              </div>
+            ))}
+
+            {openTickets.slice(0, 5).map((ticket) => (
+              <div key={`ticket-${ticket.key}`} className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-bold text-zinc-100 truncate">{ticket.sourceIdeaSlug ?? ticket.id}</div>
+                  <div className="text-[11px] font-mono text-zinc-600 mt-1">
+                    {ticket.isStale ? 'Stale pending ticket' : 'Open Sid ticket'}
+                  </div>
+                </div>
+                <Link href={ticket.href} className="text-xs font-black uppercase tracking-widest text-brand hover:opacity-80">
+                  Queue
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="glass rounded-2xl border-white/5 p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock3 size={16} className="text-brand" />
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-300">Recent</h2>
+            </div>
+            <Link href="/activity" className="text-[11px] font-mono text-zinc-500 hover:text-brand">
+              See all
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {recents.length === 0 && (
+              <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-zinc-500">
+                No recent note activity yet.
+              </div>
+            )}
+            {recents.map((item) => (
               <Link
-                key={`${d.category}/${d.slug}`}
-                href={`/docs/${encodeURIComponent(d.category)}/${encodeURIComponent(d.slug)}`}
-                className="block p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all"
+                key={item.key}
+                href={item.path}
+                className="block rounded-xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10 transition-all"
+              >
+                <div className="text-sm font-bold text-zinc-100 truncate">{item.title}</div>
+                <div className="text-[11px] font-mono text-zinc-600 mt-1">{item.category} - {fmt(item.modifiedAt)}</div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-6">
+        <div className="glass rounded-2xl border-white/5 p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ListTodo size={16} className="text-brand" />
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-300">Queue</h2>
+            </div>
+            <Link href="/queue" className="text-[11px] font-mono text-zinc-500 hover:text-brand">
+              See all
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {queueTop.length === 0 && (
+              <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-zinc-500">
+                Sid queue is empty.
+              </div>
+            )}
+            {queueTop.map((ticket) => (
+              <Link
+                key={ticket.key}
+                href={ticket.href}
+                className="block rounded-xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10 transition-all"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-sm font-bold text-zinc-200 truncate">{d.title}</div>
-                    <div className="text-[10px] font-mono text-zinc-600 truncate">{d.category} - {d.date ?? d.slug}</div>
+                    <div className="text-sm font-bold text-zinc-100 truncate">{ticket.sourceIdeaSlug ?? ticket.id}</div>
+                    <div className="text-[11px] font-mono text-zinc-600 mt-1">{fmt(ticket.createdAt)}</div>
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">Open</span>
+                  <span
+                    className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border ${
+                      ticket.derivedStatus === 'produced'
+                        ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                        : ticket.isStale
+                          ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-200'
+                          : 'border-zinc-500/30 bg-zinc-500/10 text-zinc-300'
+                    }`}
+                  >
+                    {ticket.derivedStatus === 'produced' ? 'Produced' : ticket.isStale ? 'Stale' : 'Pending'}
+                  </span>
                 </div>
               </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="glass rounded-2xl border-white/5 p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Server size={16} className="text-brand" />
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-300">Systems</h2>
+          </div>
+          <div className="space-y-2">
+            {systems.map((system) => (
+              <a
+                key={system.label}
+                href={system.href}
+                target={system.href.startsWith('http') ? '_blank' : undefined}
+                rel={system.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                className="block rounded-xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10 transition-all"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-bold text-zinc-100">{system.label}</div>
+                  {system.href.startsWith('http') ? (
+                    <ExternalLink size={14} className="text-zinc-500" />
+                  ) : (
+                    <Ticket size={14} className="text-zinc-500" />
+                  )}
+                </div>
+              </a>
             ))}
           </div>
         </div>
@@ -169,3 +212,4 @@ export default function Home() {
     </div>
   );
 }
+

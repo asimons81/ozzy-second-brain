@@ -38,7 +38,11 @@ export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navItems = [
-    { label: 'Dashboard', href: '/', icon: Activity },
+    { label: 'Now', href: '/', icon: Activity },
+    { label: 'Activity', href: '/activity', icon: BarChart3 },
+    { label: 'Queue', href: '/queue', icon: Wrench },
+    { label: 'Ideas', href: '/docs/ideas', icon: Zap },
+    { label: 'Renders', href: '/renders', icon: TrendingUp },
     ...categories.map((category) => {
       const Icon = iconMap[category.icon as keyof typeof iconMap] ?? Book;
       return {

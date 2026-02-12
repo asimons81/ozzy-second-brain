@@ -76,3 +76,15 @@ Save updates:
 - Recents helpers: `lib/recents.ts`
 - Quick Capture UI: `components/QuickCaptureModal.tsx`
 - Global top-bar actions: `components/GlobalActions.tsx`
+
+## Now / Activity / Queue
+
+- `Now` (`/`):
+  Unified operational dashboard with active approvals, open Sid tickets, recents, queue preview, and systems links.
+- `Activity` (`/activity`):
+  Merged timeline from recents index, Sid queue tickets, renders, and approved ideas.
+  Includes filters (`All`, `Notes`, `Tickets`, `Renders`) and search.
+- `Queue` (`/queue`):
+  Pipeline view for `notes/sid-queue/*.json` with derived status:
+  `Pending` (no output), `Produced` (output note exists), `Stale` (pending over 24h).
+  Ticket detail route: `/queue/[ticketId]` with JSON view and derived links.

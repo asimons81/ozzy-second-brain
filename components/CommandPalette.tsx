@@ -53,9 +53,26 @@ export function CommandPalette({ items, onNewNote }: CommandPaletteProps) {
   const query = q.trim().toLowerCase();
 
   const filtered = useMemo(() => {
-    if (!query) return items.slice(0, 20);
+    const quickLinks: PaletteItem[] = [
+      { title: 'Now', subtitle: 'Dashboard', href: '/', group: 'navigation' },
+      { title: 'Activity', subtitle: 'Merged timeline', href: '/activity', group: 'navigation' },
+      { title: 'Queue', subtitle: 'Sid ticket pipeline', href: '/queue', group: 'navigation' },
+      { title: 'Docs', subtitle: 'All markdown docs', href: '/docs/briefs', group: 'navigation' },
+      { title: 'Ideas', subtitle: 'Mission Control', href: '/docs/ideas', group: 'navigation' },
+      { title: 'Renders', subtitle: 'Output library', href: '/renders', group: 'navigation' },
+    ];
 
-    return items
+    const unique = new Map<string, PaletteItem>();
+    [...quickLinks, ...items].forEach((item) => {
+      if (!unique.has(item.href)) {
+        unique.set(item.href, item);
+      }
+    });
+    const merged = [...unique.values()];
+
+    if (!query) return merged.slice(0, 24);
+
+    return merged
       .filter((item) => {
         const haystack = `${item.title} ${item.subtitle ?? ''} ${item.group ?? ''} ${item.href}`.toLowerCase();
         return haystack.includes(query);
