@@ -41,16 +41,18 @@ export function Sidebar() {
     { label: 'Now', href: '/', icon: Activity },
     { label: 'Activity', href: '/activity', icon: BarChart3 },
     { label: 'Queue', href: '/queue', icon: Wrench },
-    { label: 'Ideas', href: '/docs/ideas', icon: Zap },
+    { label: 'Docs', href: '/docs', icon: Book },
+    { label: 'Ideas', href: '/ideas', icon: Zap },
     { label: 'Renders', href: '/renders', icon: TrendingUp },
     ...categories.map((category) => {
+      if (category.key === 'ideas' || category.key === 'renders') return null;
       const Icon = iconMap[category.icon as keyof typeof iconMap] ?? Book;
       return {
         label: category.title,
-        href: category.key === 'renders' ? '/renders' : `/docs/${category.key}`,
+        href: `/docs/${category.key}`,
         icon: Icon,
       };
-    }),
+    }).filter((item) => item !== null),
   ];
 
   const externalLinks = [

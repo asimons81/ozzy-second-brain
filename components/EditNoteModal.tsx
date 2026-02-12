@@ -114,7 +114,7 @@ export function EditNoteModal({ category, slug, title, tags, content, storageWar
               <div className="p-4 md:p-6 space-y-4">
                 {storageWarning && (
                   <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
-                    {storageWarning} Changes may not persist.
+                    {storageWarning}
                   </div>
                 )}
                 {error && (

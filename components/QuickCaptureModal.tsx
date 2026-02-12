@@ -17,16 +17,37 @@ type QuickCaptureModalProps = {
   categories: CaptureCategory[];
   onCreated?: (title: string) => void;
   storageWarning?: string | null;
+  presetCategory?: string;
 };
 
-export function QuickCaptureModal({ open, onClose, categories, onCreated, storageWarning }: QuickCaptureModalProps) {
+function resolveInitialCategory(
+  categories: CaptureCategory[],
+  presetCategory?: string,
+) {
+  const first = categories[0]?.key ?? '';
+  if (presetCategory && categories.some((item) => item.key === presetCategory)) {
+    return presetCategory;
+  }
+  return first;
+}
+
+export function QuickCaptureModal({
+  open,
+  onClose,
+  categories,
+  onCreated,
+  storageWarning,
+  presetCategory,
+}: QuickCaptureModalProps) {
   const router = useRouter();
-  const firstCategory = categories[0]?.key ?? '';
+  const firstCategory = resolveInitialCategory(categories, presetCategory);
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState(firstCategory);
   const [tags, setTags] = useState('');
-  const [body, setBody] = useState(categories[0]?.defaultTemplate ?? '');
+  const [body, setBody] = useState(
+    categories.find((item) => item.key === firstCategory)?.defaultTemplate ?? '',
+  );
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -114,7 +135,7 @@ export function QuickCaptureModal({ open, onClose, categories, onCreated, storag
           <div className="p-4 md:p-6 space-y-4">
             {storageWarning && (
               <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
-                {storageWarning} Changes may not persist.
+                {storageWarning}
               </div>
             )}
             {error && (

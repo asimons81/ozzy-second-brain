@@ -1,0 +1,8 @@
+{
+  "systems": [
+    { "label": "Brain", "href": "https://brain.tonyreviewsthings.com" },
+    { "label": "Quota", "href": "https://status.tonyreviewsthings.com" },
+    { "label": "Captions", "href": "https://captions.tonyreviewsthings.com" },
+    { "label": "Analytics", "href": "https://post.tonyreviewsthings.com" }
+  ]
+}

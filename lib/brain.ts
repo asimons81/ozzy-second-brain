@@ -176,7 +176,7 @@ export function getAllPaletteItems(): PaletteItem[] {
       title: doc.title,
       subtitle: doc.modified ?? doc.date ?? doc.slug,
       href: `/docs/${encodeURIComponent(doc.category)}/${encodeURIComponent(doc.slug)}`,
-      group: doc.category,
+      group: `Docs/${doc.category}`,
     }))
     .sort((a, b) => (a.group ?? '').localeCompare(b.group ?? '') || a.title.localeCompare(b.title));
 }

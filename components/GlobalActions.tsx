@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { CommandPalette, PaletteItem } from '@/components/CommandPalette';
+import { CommandPalette, PaletteActionId, PaletteItem } from '@/components/CommandPalette';
 import { QuickCaptureModal } from '@/components/QuickCaptureModal';
 
 type CaptureCategory = {
@@ -19,6 +19,8 @@ type GlobalActionsProps = {
 
 export function GlobalActions({ items, captureCategories, storageWarning }: GlobalActionsProps) {
   const [captureOpen, setCaptureOpen] = useState(false);
+  const [capturePresetCategory, setCapturePresetCategory] = useState<string | undefined>(undefined);
+  const [captureSession, setCaptureSession] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
 
   const showToast = (value: string) => {
@@ -26,25 +28,45 @@ export function GlobalActions({ items, captureCategories, storageWarning }: Glob
     window.setTimeout(() => setToast(null), 2400);
   };
 
+  const openCapture = (presetCategory?: string) => {
+    setCapturePresetCategory(presetCategory);
+    setCaptureSession((v) => v + 1);
+    setCaptureOpen(true);
+  };
+
+  const handlePaletteAction = (actionId: PaletteActionId) => {
+    if (actionId === 'new-idea') {
+      openCapture('ideas');
+      return;
+    }
+    if (actionId === 'new-journal') {
+      openCapture('journal');
+      return;
+    }
+    openCapture();
+  };
+
   return (
     <>
       <div className="flex items-center gap-2">
         <button
-          onClick={() => setCaptureOpen(true)}
+          onClick={() => openCapture()}
           className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-brand/40 bg-brand/10 hover:bg-brand/20 text-brand transition-all"
         >
           <Plus size={16} />
           <span className="text-xs font-black uppercase tracking-widest">+ Capture</span>
         </button>
-        <CommandPalette items={items} onNewNote={() => setCaptureOpen(true)} />
+        <CommandPalette items={items} onAction={handlePaletteAction} />
       </div>
 
       <QuickCaptureModal
+        key={`capture-${captureSession}`}
         open={captureOpen}
         onClose={() => setCaptureOpen(false)}
         categories={captureCategories}
         onCreated={(title) => showToast(`Saved: ${title}`)}
         storageWarning={storageWarning}
+        presetCategory={capturePresetCategory}
       />
 
       {toast && (

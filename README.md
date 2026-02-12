@@ -88,3 +88,11 @@ Save updates:
   Pipeline view for `notes/sid-queue/*.json` with derived status:
   `Pending` (no output), `Produced` (output note exists), `Stale` (pending over 24h).
   Ticket detail route: `/queue/[ticketId]` with JSON view and derived links.
+
+## Systems Config
+
+- Systems/subdomain links are configured in root `trt-systems.json`.
+- Loader: `lib/systems.ts` (safe fallback if config is missing or invalid).
+- Consumers:
+  - `Now` dashboard Systems panel
+  - Command Palette `Systems` group

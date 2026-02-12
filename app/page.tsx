@@ -3,6 +3,7 @@ import { Clock3, ExternalLink, Layers, ListTodo, Server, Sparkles, Ticket } from
 import { getActivitySnapshot } from '@/lib/activity';
 import { readRecents, getStorageRuntimeInfo } from '@/lib/storage';
 import { readApprovedIdeas, readSidTickets } from '@/lib/pipeline';
+import { getSystemLinks } from '@/lib/systems';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,12 +32,7 @@ export default function NowPage() {
   ];
   const lastActivity = lastCandidates.sort((a, b) => ts(b) - ts(a))[0] ?? null;
 
-  const systems = [
-    { label: 'Now', href: '/' },
-    { label: 'Quota', href: 'https://status.tonyreviewsthings.com' },
-    { label: 'Captions', href: 'https://captions.tonyreviewsthings.com' },
-    { label: 'Analytics', href: 'https://post.tonyreviewsthings.com' },
-  ];
+  const systems = getSystemLinks();
 
   return (
     <div className="max-w-6xl mx-auto py-8 md:py-16 px-4 md:px-10 space-y-8">
@@ -197,19 +193,18 @@ export default function NowPage() {
                 className="block rounded-xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10 transition-all"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm font-bold text-zinc-100">{system.label}</div>
-                  {system.href.startsWith('http') ? (
-                    <ExternalLink size={14} className="text-zinc-500" />
-                  ) : (
-                    <Ticket size={14} className="text-zinc-500" />
-                  )}
-                </div>
-              </a>
-            ))}
+                <div className="text-sm font-bold text-zinc-100">{system.label}</div>
+                {system.href.startsWith('http') ? (
+                  <ExternalLink size={14} className="text-zinc-500" />
+                ) : (
+                  <Ticket size={14} className="text-zinc-500" />
+                )}
+              </div>
+            </a>
+          ))}
           </div>
         </div>
       </section>
     </div>
   );
 }
-
