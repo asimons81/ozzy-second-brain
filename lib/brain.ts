@@ -38,6 +38,31 @@ function normalizeDate(value: unknown) {
   return value;
 }
 
+export function normalizeTag(tag: string) {
+  return tag.trim().toLowerCase();
+}
+
+function normalizeTags(raw: unknown): string[] {
+  const source = Array.isArray(raw)
+    ? raw
+    : typeof raw === 'string'
+      ? raw.split(',')
+      : [];
+
+  const seen = new Set<string>();
+  const normalized: string[] = [];
+
+  for (const value of source) {
+    if (typeof value !== 'string') continue;
+    const tag = normalizeTag(value);
+    if (!tag || seen.has(tag)) continue;
+    seen.add(tag);
+    normalized.push(tag);
+  }
+
+  return normalized;
+}
+
 function excerptFor(content: string) {
   const cleaned = content.replace(/#+\s/g, '').replace(/\s+/g, ' ').trim();
   if (!cleaned) return '';
@@ -88,6 +113,7 @@ export function getDocsByCategory(category: string): Doc[] {
         title,
         date: normalizeDate(baseDoc.date),
         modified: normalizeDate(baseDoc.modified),
+        tags: normalizeTags(baseDoc.tags),
         content,
         excerpt: excerptFor(content),
       } satisfies Doc;
@@ -125,6 +151,7 @@ export function getDoc(category: string, slug: string): Doc | null {
       title,
       date: normalizeDate(baseDoc.date),
       modified: normalizeDate(baseDoc.modified),
+      tags: normalizeTags(baseDoc.tags),
       content,
     };
   } catch {
@@ -179,4 +206,27 @@ export function getAllPaletteItems(): PaletteItem[] {
       group: `Docs/${doc.category}`,
     }))
     .sort((a, b) => (a.group ?? '').localeCompare(b.group ?? '') || a.title.localeCompare(b.title));
+}
+
+export function getTagCounts() {
+  const counts = new Map<string, number>();
+
+  for (const doc of getAllDocs()) {
+    for (const tag of doc.tags ?? []) {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+  }
+
+  return [...counts.entries()]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+}
+
+export function getDocsByTag(tag: string) {
+  const normalized = normalizeTag(tag);
+  if (!normalized) return [];
+
+  return getAllDocs()
+    .filter((doc) => (doc.tags ?? []).includes(normalized))
+    .sort((a, b) => docTimestamp(b) - docTimestamp(a) || a.title.localeCompare(b.title));
 }

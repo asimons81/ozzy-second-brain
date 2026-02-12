@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { categories } from '@/lib/categories';
 import { getStorageRuntimeInfo } from '@/lib/storage';
+import { rebuildGraphIndex } from '@/lib/graph';
 import {
   createNoteOnDisk,
   updateNoteOnDisk,
@@ -27,12 +28,19 @@ function revalidateNotePaths(category: string, slug: string) {
   safeRevalidate('/');
   safeRevalidate(`/docs/${category}`);
   safeRevalidate(`/docs/${encodeURIComponent(category)}/${encodeURIComponent(slug)}`);
+  safeRevalidate('/tags');
+  safeRevalidate('/activity');
 }
 
 export async function createNote(input: CreateNoteInput) {
   const result = createNoteOnDisk(input);
 
   if (result.success) {
+    try {
+      rebuildGraphIndex();
+    } catch {
+      // Graph index is runtime cache; note write already succeeded.
+    }
     revalidateNotePaths(result.category, result.slug);
     return { ok: true as const, href: result.href };
   }
@@ -44,6 +52,11 @@ export async function updateNote(input: UpdateNoteInput) {
   const result = updateNoteOnDisk(input);
 
   if (result.success) {
+    try {
+      rebuildGraphIndex();
+    } catch {
+      // Graph index is runtime cache; note write already succeeded.
+    }
     revalidateNotePaths(result.category, result.slug);
     return { ok: true as const, href: result.href };
   }

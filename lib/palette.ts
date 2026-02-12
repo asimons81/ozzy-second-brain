@@ -52,6 +52,15 @@ function navItems(): PaletteItem[] {
       keywords: 'docs notes categories',
     },
     {
+      id: 'nav-tags',
+      title: 'Tags',
+      subtitle: 'Browse by tag',
+      href: '/tags',
+      group: 'Navigate',
+      kind: 'link',
+      keywords: 'tags taxonomy',
+    },
+    {
       id: 'nav-ideas',
       title: 'Ideas Pipeline',
       subtitle: 'Mission Control',
@@ -59,6 +68,15 @@ function navItems(): PaletteItem[] {
       group: 'Navigate',
       kind: 'link',
       keywords: 'ideas workflow mission control',
+    },
+    {
+      id: 'nav-graph',
+      title: 'Graph',
+      subtitle: 'Activity graph stub',
+      href: '/activity',
+      group: 'Navigate',
+      kind: 'link',
+      keywords: 'graph backlinks connections',
     },
   ];
 }

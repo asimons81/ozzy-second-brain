@@ -1,6 +1,7 @@
 import matter from 'gray-matter';
 import { getStorageAdapter, getStorageRuntimeInfo } from '@/lib/storage';
 import { getCategoryByKey } from '@/lib/categories';
+import { normalizeTag } from '@/lib/brain';
 
 export type CreateNoteInput = {
   title: string;
@@ -24,11 +25,17 @@ export type NoteWriteResult =
 function parseTags(raw?: string) {
   if (!raw) return [] as string[];
 
+  const seen = new Set<string>();
+
   return raw
     .split(',')
-    .map((tag) => tag.trim())
+    .map((tag) => normalizeTag(tag))
     .filter(Boolean)
-    .filter((tag, idx, arr) => arr.indexOf(tag) === idx);
+    .filter((tag) => {
+      if (seen.has(tag)) return false;
+      seen.add(tag);
+      return true;
+    });
 }
 
 function sanitizeSlug(value: string) {

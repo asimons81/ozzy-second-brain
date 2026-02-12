@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { CommandPalette, PaletteActionId, PaletteItem } from '@/components/CommandPalette';
 import { QuickCaptureModal } from '@/components/QuickCaptureModal';
@@ -18,8 +19,11 @@ type GlobalActionsProps = {
 };
 
 export function GlobalActions({ items, captureCategories, storageWarning }: GlobalActionsProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [captureOpen, setCaptureOpen] = useState(false);
   const [capturePresetCategory, setCapturePresetCategory] = useState<string | undefined>(undefined);
+  const [capturePresetTitle, setCapturePresetTitle] = useState<string | undefined>(undefined);
   const [captureSession, setCaptureSession] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -28,8 +32,9 @@ export function GlobalActions({ items, captureCategories, storageWarning }: Glob
     window.setTimeout(() => setToast(null), 2400);
   };
 
-  const openCapture = (presetCategory?: string) => {
+  const openCapture = (presetCategory?: string, presetTitle?: string) => {
     setCapturePresetCategory(presetCategory);
+    setCapturePresetTitle(presetTitle);
     setCaptureSession((v) => v + 1);
     setCaptureOpen(true);
   };
@@ -45,6 +50,31 @@ export function GlobalActions({ items, captureCategories, storageWarning }: Glob
     }
     openCapture();
   };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const shouldOpen = searchParams.get('capture');
+    if (shouldOpen !== '1' && shouldOpen !== 'true') return;
+
+    const requestedCategory = searchParams.get('category') ?? undefined;
+    const requestedTitle = searchParams.get('title') ?? undefined;
+    const timer = window.setTimeout(() => {
+      setCapturePresetCategory(requestedCategory);
+      setCapturePresetTitle(requestedTitle);
+      setCaptureSession((v) => v + 1);
+      setCaptureOpen(true);
+    }, 0);
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete('capture');
+    next.delete('category');
+    next.delete('title');
+    const nextQuery = next.toString();
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname);
+
+    return () => window.clearTimeout(timer);
+  }, [pathname, router]);
 
   return (
     <>
@@ -67,6 +97,7 @@ export function GlobalActions({ items, captureCategories, storageWarning }: Glob
         onCreated={(title) => showToast(`Saved: ${title}`)}
         storageWarning={storageWarning}
         presetCategory={capturePresetCategory}
+        presetTitle={capturePresetTitle}
       />
 
       {toast && (
@@ -77,3 +108,4 @@ export function GlobalActions({ items, captureCategories, storageWarning }: Glob
     </>
   );
 }
+

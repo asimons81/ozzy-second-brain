@@ -37,6 +37,7 @@ yarn-error.log*
 # vercel
 .vercel
 content/.index/recents.json
+content/.index/graph.json
 
 # typescript
 *.tsbuildinfo

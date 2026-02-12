@@ -98,9 +98,13 @@ export default async function RenderDetail({ params }: { params: Promise<{ slug:
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Tags</div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {doc.tags.map((t) => (
-                  <span key={t} className="px-2 py-1 rounded-lg border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-zinc-300">
+                  <Link
+                    key={t}
+                    href={`/tags/${encodeURIComponent(t)}`}
+                    className="px-2 py-1 rounded-lg border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-zinc-300 hover:border-brand/40 hover:text-brand transition-colors"
+                  >
                     {t}
-                  </span>
+                  </Link>
                 ))}
               </div>
             </div>

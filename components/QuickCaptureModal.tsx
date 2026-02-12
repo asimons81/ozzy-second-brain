@@ -18,6 +18,7 @@ type QuickCaptureModalProps = {
   onCreated?: (title: string) => void;
   storageWarning?: string | null;
   presetCategory?: string;
+  presetTitle?: string;
 };
 
 function resolveInitialCategory(
@@ -38,11 +39,13 @@ export function QuickCaptureModal({
   onCreated,
   storageWarning,
   presetCategory,
+  presetTitle,
 }: QuickCaptureModalProps) {
   const router = useRouter();
   const firstCategory = resolveInitialCategory(categories, presetCategory);
+  const initialTitle = presetTitle?.trim() ?? '';
 
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(initialTitle);
   const [category, setCategory] = useState(firstCategory);
   const [tags, setTags] = useState('');
   const [body, setBody] = useState(
@@ -57,7 +60,7 @@ export function QuickCaptureModal({
   );
 
   const closeAndReset = () => {
-    setTitle('');
+    setTitle(initialTitle);
     setCategory(firstCategory);
     setTags('');
     setBody(templateByCategory.get(firstCategory) ?? '');

@@ -65,7 +65,47 @@ Save updates:
 ## Runtime Index Git Hygiene
 
 - `content/.index/recents.json` is a local runtime file and is ignored by git.
+- `content/.index/graph.json` is a local runtime backlinks/graph cache and is ignored by git.
 - Keep `content/.index/.gitkeep` tracked so the directory exists in fresh clones.
+
+## Wiki Links, Backlinks, Tags
+
+### Wiki links
+
+- Supports Obsidian-style links in markdown body:
+  - `[[some note]]`
+  - `[[some note|Custom Label]]`
+- During doc rendering, wiki links are rewritten to normal markdown links targeting `/wiki/<slug>`.
+- `/wiki/[slug]` resolves notes across all categories:
+  - exact slug match first
+  - then normalized title match
+- If not found, `/wiki/[slug]` offers a create CTA that opens Quick Capture prefilled from the missing wiki title.
+
+### Backlinks graph index
+
+- Graph cache file: `content/.index/graph.json`
+- Built from all markdown notes using canonical ids: `${category}:${slug}`
+- Schema:
+  - `nodes`: note metadata
+  - `outbound`: links from note -> note ids
+  - `inbound`: backlinks to note
+- Rebuilt after note create/edit via server actions.
+- Missing graph file is handled gracefully and rebuilt on demand.
+
+### Tags
+
+- Tags are normalized on save (`trim + lowercase`).
+- Tag browsing pages:
+  - `/tags` for all tags + counts
+  - `/tags/[tag]` for notes containing that tag (sorted by modified desc)
+- Tag chips in note headers are clickable and route to tag pages.
+
+### Brain Panel on docs
+
+- Doc pages now include a panel with:
+  - Backlinks (inbound links)
+  - Outbound links
+  - Related notes (same-tag overlap, top 6)
 
 ## Notes Architecture
 

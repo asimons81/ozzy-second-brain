@@ -8,6 +8,7 @@ const navItems = [
   { label: 'Activity', href: '/activity' },
   { label: 'Queue', href: '/queue' },
   { label: 'Docs', href: '/docs' },
+  { label: 'Tags', href: '/tags' },
   { label: 'Ideas', href: '/ideas' },
   { label: 'Renders', href: '/renders' },
 ];
@@ -52,4 +53,3 @@ export function TopNav() {
     </>
   );
 }
-
