@@ -157,7 +157,7 @@ export default function Home() {
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-sm font-bold text-zinc-200 truncate">{d.title}</div>
-                    <div className="text-[10px] font-mono text-zinc-600 truncate">{d.category} • {d.date ?? d.slug}</div>
+                    <div className="text-[10px] font-mono text-zinc-600 truncate">{d.category} - {d.date ?? d.slug}</div>
                   </div>
                   <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">Open</span>
                 </div>

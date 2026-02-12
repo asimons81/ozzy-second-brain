@@ -14,9 +14,10 @@ type CaptureCategory = {
 type GlobalActionsProps = {
   items: PaletteItem[];
   captureCategories: CaptureCategory[];
+  storageWarning?: string | null;
 };
 
-export function GlobalActions({ items, captureCategories }: GlobalActionsProps) {
+export function GlobalActions({ items, captureCategories, storageWarning }: GlobalActionsProps) {
   const [captureOpen, setCaptureOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -43,6 +44,7 @@ export function GlobalActions({ items, captureCategories }: GlobalActionsProps) 
         onClose={() => setCaptureOpen(false)}
         categories={captureCategories}
         onCreated={(title) => showToast(`Saved: ${title}`)}
+        storageWarning={storageWarning}
       />
 
       {toast && (

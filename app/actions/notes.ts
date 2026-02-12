@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { categories } from '@/lib/categories';
+import { getStorageRuntimeInfo } from '@/lib/storage';
 import {
   createNoteOnDisk,
   updateNoteOnDisk,
@@ -10,6 +11,9 @@ import {
 } from '@/lib/notes';
 
 export type { CreateNoteInput, UpdateNoteInput };
+export type NoteActionResult =
+  | { ok: true; href: string }
+  | { ok: false; error: string };
 
 function safeRevalidate(pathname: string) {
   try {
@@ -30,10 +34,10 @@ export async function createNote(input: CreateNoteInput) {
 
   if (result.success) {
     revalidateNotePaths(result.category, result.slug);
-    return { success: true as const, href: result.href };
+    return { ok: true as const, href: result.href };
   }
 
-  return result;
+  return { ok: false as const, error: result.error } satisfies NoteActionResult;
 }
 
 export async function updateNote(input: UpdateNoteInput) {
@@ -41,10 +45,10 @@ export async function updateNote(input: UpdateNoteInput) {
 
   if (result.success) {
     revalidateNotePaths(result.category, result.slug);
-    return { success: true as const, href: result.href };
+    return { ok: true as const, href: result.href };
   }
 
-  return result;
+  return { ok: false as const, error: result.error } satisfies NoteActionResult;
 }
 
 export async function getCaptureCategories() {
@@ -53,4 +57,8 @@ export async function getCaptureCategories() {
     title: category.title,
     defaultTemplate: category.defaultTemplate,
   }));
+}
+
+export async function getStorageModeInfo() {
+  return getStorageRuntimeInfo();
 }

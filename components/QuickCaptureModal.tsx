@@ -16,9 +16,10 @@ type QuickCaptureModalProps = {
   onClose: () => void;
   categories: CaptureCategory[];
   onCreated?: (title: string) => void;
+  storageWarning?: string | null;
 };
 
-export function QuickCaptureModal({ open, onClose, categories, onCreated }: QuickCaptureModalProps) {
+export function QuickCaptureModal({ open, onClose, categories, onCreated, storageWarning }: QuickCaptureModalProps) {
   const router = useRouter();
   const firstCategory = categories[0]?.key ?? '';
 
@@ -52,7 +53,7 @@ export function QuickCaptureModal({ open, onClose, categories, onCreated }: Quic
 
     const result = await createNote({ title, category, tags, body });
 
-    if (!result.success) {
+    if (!result.ok) {
       setError(result.error);
       setSaving(false);
       return;
@@ -111,6 +112,11 @@ export function QuickCaptureModal({ open, onClose, categories, onCreated }: Quic
           </div>
 
           <div className="p-4 md:p-6 space-y-4">
+            {storageWarning && (
+              <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
+                {storageWarning} Changes may not persist.
+              </div>
+            )}
             {error && (
               <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
                 {error}

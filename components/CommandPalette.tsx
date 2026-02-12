@@ -139,7 +139,7 @@ export function CommandPalette({ items, onNewNote }: CommandPaletteProps) {
                           <div className="text-sm font-black tracking-tight text-zinc-100">{item.title}</div>
                           {(item.subtitle || item.group) && (
                             <div className="text-[11px] font-mono text-zinc-600 mt-1">
-                              {item.group ? `${item.group} • ` : ''}
+                              {item.group ? `${item.group} - ` : ''}
                               {item.subtitle}
                             </div>
                           )}

@@ -1,10 +1,6 @@
-import fs from 'fs';
-import path from 'path';
 import matter from 'gray-matter';
 import { categories, getCategoryByKey } from '@/lib/categories';
-import { readRecents } from '@/lib/recents';
-
-const BRAIN_DIR = path.join(process.cwd(), 'content');
+import { getStorageAdapter, readRecents } from '@/lib/storage';
 
 export interface Doc {
   slug: string;
@@ -59,26 +55,21 @@ function docTimestamp(doc: Doc) {
 }
 
 export function getCategories() {
-  return categories
-    .filter((category) => fs.existsSync(path.join(process.cwd(), category.dir)))
-    .map((category) => category.key);
+  return categories.map((category) => category.key);
 }
 
 export function getDocsByCategory(category: string): Doc[] {
   const known = getCategoryByKey(category);
   if (!known) return [];
 
-  const categoryPath = path.join(process.cwd(), known.dir);
-  if (!fs.existsSync(categoryPath)) return [];
-
-  const files = fs.readdirSync(categoryPath).filter((file) => file.endsWith('.md'));
+  const storage = getStorageAdapter();
+  const files = storage.listNotes(category).map((slug) => `${slug}.md`);
 
   return files
     .map((file) => {
-      const filePath = path.join(categoryPath, file);
-      const fileContent = fs.readFileSync(filePath, 'utf-8');
-      const { data, content } = matter(fileContent);
       const slug = file.replace('.md', '');
+      const fileContent = storage.readNote(category, slug);
+      const { data, content } = matter(fileContent);
 
       const fm = data as Record<string, unknown>;
       let title = (fm.title as string | undefined) ?? undefined;
@@ -115,10 +106,7 @@ export function getDoc(category: string, slug: string): Doc | null {
   if (!known) return null;
 
   try {
-    const filePath = path.join(process.cwd(), known.dir, `${slug}.md`);
-    if (!fs.existsSync(filePath)) return null;
-
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    const fileContent = getStorageAdapter().readNote(category, slug);
     const { data, content } = matter(fileContent);
     const fm = data as Record<string, unknown>;
 
@@ -173,15 +161,7 @@ export function getRecentDocs(limit = 12): Doc[] {
   }
 
   const all = getAllDocs();
-  const withTs = all.map((doc) => {
-    const fallbackPath = path.join(BRAIN_DIR, doc.category, `${doc.slug}.md`);
-    const fallbackTs = fs.existsSync(fallbackPath) ? fs.statSync(fallbackPath).mtimeMs : 0;
-
-    return {
-      doc,
-      ts: docTimestamp(doc) || fallbackTs,
-    };
-  });
+  const withTs = all.map((doc) => ({ doc, ts: docTimestamp(doc) }));
 
   return withTs
     .sort((a, b) => b.ts - a.ts)

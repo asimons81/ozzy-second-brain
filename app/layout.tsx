@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { GlobalActions } from '@/components/GlobalActions';
 import { getAllPaletteItems } from '@/lib/brain';
 import { categories } from '@/lib/categories';
+import { getStorageRuntimeInfo } from '@/lib/storage';
 
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] });
 
@@ -18,6 +19,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const storage = getStorageRuntimeInfo();
   const captureCategories = categories.map((category) => ({
     key: category.key,
     title: category.title,
@@ -34,8 +36,17 @@ export default function RootLayout({
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">OZZY BRAIN</div>
               <div className="text-sm font-bold text-zinc-300">Capture + Command Palette + Unified Dashboard</div>
             </div>
-            <GlobalActions items={getAllPaletteItems()} captureCategories={captureCategories} />
+            <GlobalActions
+              items={getAllPaletteItems()}
+              captureCategories={captureCategories}
+              storageWarning={storage.warningBanner}
+            />
           </div>
+          {storage.warningBanner && (
+            <div className="px-4 md:px-12 py-3 border-b border-yellow-500/20 bg-yellow-500/10 text-yellow-100 text-sm font-medium">
+              {storage.warningBanner}
+            </div>
+          )}
           {children}
         </main>
       </body>

@@ -1,5 +1,6 @@
 import { getDoc, getCategories, getDocsByCategory } from '@/lib/brain';
 import { getCategoryByKey } from '@/lib/categories';
+import { getStorageRuntimeInfo } from '@/lib/storage';
 import { EditNoteModal } from '@/components/EditNoteModal';
 import { notFound } from 'next/navigation';
 import Markdown from 'react-markdown';
@@ -32,6 +33,7 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
   }
 
   const doc = getDoc(category, decodedSlug);
+  const storage = getStorageRuntimeInfo();
 
   if (!doc) {
     notFound();
@@ -62,6 +64,7 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
             title={doc.title}
             tags={doc.tags}
             content={doc.content}
+            storageWarning={storage.warningBanner}
           />
         </div>
       </header>
