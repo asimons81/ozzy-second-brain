@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OZZY Second Brain
+
+Local-first Next.js workspace for writing and browsing markdown notes under `content/*`.
 
 ## Getting Started
 
-First, run the development server:
+Run the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Add Notes From UI
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The app now supports local markdown authoring with frontmatter.
 
-## Learn More
+1. Click `+ Capture` in the top bar, or press `Ctrl/Cmd+K` and run `New note`.
+2. Fill in `Title`, `Category`, optional `Tags`, and markdown `Body`.
+3. Press `Ctrl/Cmd+Enter` or click `Create note`.
+4. The note is written to `content/<category>/<slug>.md` and opened immediately.
 
-To learn more about Next.js, take a look at the following resources:
+## Edit Existing Notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Open any `/docs/[category]/[slug]` page.
+2. Click `Edit`.
+3. Update title/tags/body and save with `Ctrl/Cmd+Enter`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Save updates:
 
-## Deploy on Vercel
+- Preserve unknown frontmatter keys.
+- Set `modified: <iso>` in frontmatter.
+- Update `content/.index/recents.json` for latest activity.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Notes Architecture
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Category config: `lib/categories.ts`
+- Markdown loading/parsing: `lib/brain.ts`
+- Server actions for create/edit: `app/actions/notes.ts`
+- Recents index utilities: `lib/recents.ts`
+- Quick Capture UI: `components/QuickCaptureModal.tsx`
+- Global top-bar actions: `components/GlobalActions.tsx`
