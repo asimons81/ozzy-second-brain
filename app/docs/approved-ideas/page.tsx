@@ -1,5 +1,3 @@
-'use server';
-
 import { getDocsByCategory } from '@/lib/brain';
 import { CheckCircle, ArrowRight, Clock, Play } from 'lucide-react';
 import Link from 'next/link';

@@ -1,4 +1,4 @@
-import { getDocBySlug } from '@/lib/brain';
+import { getDoc } from '@/lib/brain';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, Clock, ExternalLink } from 'lucide-react';
@@ -12,7 +12,7 @@ export async function generateStaticParams() {
 
 export default async function ApprovedIdeaPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const doc = getDocBySlug('approved-ideas', slug);
+  const doc = getDoc('approved-ideas', slug);
 
   if (!doc) {
     notFound();
@@ -56,7 +56,7 @@ export default async function ApprovedIdeaPage({ params }: { params: Promise<{ s
       </header>
 
       <article className="prose prose-invert prose-zinc max-w-none">
-        <div dangerouslySetInnerHTML={{ __html: doc.html || '' }} />
+        <div dangerouslySetInnerHTML={{ __html: doc.content || '' }} />
       </article>
     </div>
   );
