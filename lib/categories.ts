@@ -77,6 +77,13 @@ export const categories: BrainCategory[] = [
     icon: 'Hammer',
     defaultTemplate: '## Goal\n\n## Build notes\n\n## Status\n',
   },
+  {
+    key: 'calendar',
+    title: 'Calendar',
+    dir: 'content/calendar',
+    icon: 'CalendarDays',
+    defaultTemplate: '## Date\n\n## Content\n\n## Notes\n',
+  },
 ];
 
 const categoryMap = new Map(categories.map((category) => [category.key, category]));
