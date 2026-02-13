@@ -15,6 +15,13 @@ export const categories: BrainCategory[] = [
     defaultTemplate: '## Context\n\n## Why now\n\n## Next step\n',
   },
   {
+    key: 'approved-ideas',
+    title: 'Approved Ideas',
+    dir: 'content/approved-ideas',
+    icon: 'CheckCircle',
+    defaultTemplate: '## Approved\n\n## Action items\n',
+  },
+  {
     key: 'briefs',
     title: 'Briefs',
     dir: 'content/briefs',

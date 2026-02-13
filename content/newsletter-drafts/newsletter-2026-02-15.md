@@ -7,6 +7,12 @@
 
 ### 🔥 What's Hot Right Now
 
+**World Models: Beyond the Word**
+→ 2026 is emerging as the year of "World Models." AI is moving from predicting the next token to predicting actions and outcomes in physical and simulated spaces. This is the bridge from "Chatbot" to "Robot Brain."
+
+**The "Super Agent" Front Door**
+→ The industry is shifting from building individual agents to building the "front door"—the interface that coordinates multiple specialized agents. Whoever owns the orchestration layer owns the market.
+
 **GPT-OSS-120B with Multimodal Vision**
 → Taught to see using Google Lens and OpenCV. Massive for local agent autonomy.
 

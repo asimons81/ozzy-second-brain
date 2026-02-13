@@ -39,6 +39,10 @@ yarn-error.log*
 content/.index/recents.json
 content/.index/graph.json
 
+# Pipeline
+notes/
+content/approved-ideas/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
