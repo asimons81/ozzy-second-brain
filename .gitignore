@@ -46,3 +46,4 @@ content/approved-ideas/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.env
