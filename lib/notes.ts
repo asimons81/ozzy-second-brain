@@ -8,6 +8,8 @@ export type CreateNoteInput = {
   category: string;
   tags?: string;
   body?: string;
+  author?: 'user' | 'agent';
+  requestReview?: boolean;
 };
 
 export type UpdateNoteInput = {
@@ -103,11 +105,18 @@ export function createNoteOnDisk(input: CreateNoteInput): NoteWriteResult {
 
     const tags = parseTags(input.tags);
     const date = new Date().toISOString();
-    const fileContent = matter.stringify(input.body?.trim() ?? '', {
+    const frontmatter: Record<string, unknown> = {
       title,
       date,
       tags,
-    });
+    };
+    if (input.author) {
+      frontmatter.author = input.author;
+    }
+    if (input.requestReview) {
+      frontmatter.review_status = 'pending';
+    }
+    const fileContent = matter.stringify(input.body?.trim() ?? '', frontmatter);
 
     storage.writeNote(category, slug, fileContent);
     upsertRecents(category, slug, title, date);

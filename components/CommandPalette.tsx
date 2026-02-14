@@ -17,7 +17,20 @@ function normalize(value: string) {
 }
 
 function itemSearchText(item: PaletteItem) {
-  return `${item.title} ${item.subtitle ?? ''} ${item.group} ${item.href ?? ''} ${item.keywords ?? ''}`.toLowerCase();
+  return `${item.title} ${item.subtitle ?? ''} ${item.group} ${item.href ?? ''} ${item.keywords ?? ''} ${item.searchBody ?? ''}`.toLowerCase();
+}
+
+function bodyMatchSnippet(body: string | undefined, query: string): string | null {
+  if (!body || !query) return null;
+  const lowerBody = body.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const idx = lowerBody.indexOf(lowerQuery);
+  if (idx === -1) return null;
+  const start = Math.max(0, idx - 30);
+  const end = Math.min(body.length, idx + query.length + 50);
+  const prefix = start > 0 ? '...' : '';
+  const suffix = end < body.length ? '...' : '';
+  return `${prefix}${body.slice(start, end)}${suffix}`;
 }
 
 function sortByGroup(a: PaletteItem, b: PaletteItem) {
@@ -197,6 +210,15 @@ export function CommandPalette({ items, onAction }: CommandPaletteProps) {
                               {item.subtitle && (
                                 <div className="text-[11px] font-mono text-zinc-600 mt-1 truncate">{item.subtitle}</div>
                               )}
+                              {q && (() => {
+                                const snippet = bodyMatchSnippet(item.searchBody, q);
+                                if (!snippet) return null;
+                                return (
+                                  <div className="text-[10px] text-zinc-500 mt-1 truncate italic">
+                                    {snippet}
+                                  </div>
+                                );
+                              })()}
                             </div>
                             <span className="text-[10px] font-mono text-zinc-700 truncate">
                               {item.kind === 'action' ? 'Action' : item.href}

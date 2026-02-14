@@ -25,8 +25,12 @@ export default function QueuePage() {
 
       <div className="space-y-3">
         {tickets.length === 0 && (
-          <div className="glass rounded-2xl border-white/5 p-6 text-sm text-zinc-500">
-            No tickets found in `notes/sid-queue`.
+          <div className="glass rounded-2xl border-white/5 p-6 md:p-8 text-center space-y-3">
+            <div className="text-5xl opacity-20">&#128203;</div>
+            <h3 className="text-lg font-bold text-zinc-300">Sid queue is empty</h3>
+            <p className="text-sm text-zinc-500 max-w-lg mx-auto">
+              When you approve ideas from the Ideas pipeline, Sid tickets are created here automatically. Approve an idea to see the pipeline in action.
+            </p>
           </div>
         )}
 

@@ -18,8 +18,12 @@ export default function TagsPage() {
       </header>
 
       {tags.length === 0 ? (
-        <div className="glass rounded-2xl border border-dashed border-white/10 p-6 text-zinc-500">
-          No tags yet.
+        <div className="glass rounded-2xl border border-dashed border-white/10 p-6 md:p-8 text-center space-y-3">
+          <div className="text-5xl opacity-20">&#127991;</div>
+          <h3 className="text-lg font-bold text-zinc-300">No tags yet</h3>
+          <p className="text-sm text-zinc-500 max-w-md mx-auto">
+            Tags help you organize and discover connections between notes. Add tags when creating or editing notes to see them here.
+          </p>
         </div>
       ) : (
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

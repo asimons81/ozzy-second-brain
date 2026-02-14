@@ -71,7 +71,12 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
 
       <div className="space-y-2">
         {filtered.length === 0 && (
-          <div className="glass rounded-2xl border-white/5 p-6 text-sm text-zinc-500">No activity events matched this filter.</div>
+          <div className="glass rounded-2xl border-white/5 p-6 text-center space-y-2">
+            <div className="text-sm text-zinc-500">No activity events matched this filter.</div>
+            {(filter !== 'all' || query) && (
+              <p className="text-xs text-zinc-600">Try broadening your search or switching to &quot;all&quot; to see everything.</p>
+            )}
+          </div>
         )}
         {filtered.map((event) => {
           const Icon = eventIcon(event.type);
