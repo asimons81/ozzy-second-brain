@@ -32,10 +32,7 @@
   ],
   "exclude": [
     "node_modules",
-    "products",
-    "quota-dashboard",
-    "smugmug-google-photos-sync",
-    "x-amplify",
+    "projects",
     "post-core",
     "the-forge",
     ".archive",
