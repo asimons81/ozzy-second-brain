@@ -41,6 +41,7 @@ export function Sidebar() {
     { label: 'Now', href: '/', icon: Activity },
     { label: 'Activity', href: '/activity', icon: BarChart3 },
     { label: 'Queue', href: '/queue', icon: Wrench },
+    { label: 'Calendar', href: '/calendar', icon: Calendar },
     { label: 'Docs', href: '/docs', icon: Book },
     { label: 'Ideas', href: '/ideas', icon: Zap },
     { label: 'Renders', href: '/renders', icon: TrendingUp },
