@@ -22,6 +22,16 @@ export interface Doc {
   score?: number | string;
   source?: string;
   url?: string;
+  author?: 'user' | 'agent';
+  review_status?: 'pending' | 'reviewed';
+  ai_review?: string;
+}
+
+export function getReadingStats(content: string) {
+  const text = content.replace(/[#*_`~\[\]()>|]/g, '').trim();
+  const words = text.split(/\s+/).filter(Boolean).length;
+  const readingTime = Math.max(1, Math.ceil(words / 200));
+  return { words, readingTime };
 }
 
 export interface PaletteItem {

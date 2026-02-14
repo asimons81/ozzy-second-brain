@@ -1,14 +1,18 @@
-import { getDoc, getCategories, getDocsByCategory } from '@/lib/brain';
+import { getDoc, getCategories, getDocsByCategory, getReadingStats } from '@/lib/brain';
 import { getCategoryByKey } from '@/lib/categories';
 import { getDocPanelData } from '@/lib/graph';
 import { getStorageRuntimeInfo } from '@/lib/storage';
+import { isPinned } from '@/lib/pins';
 import { rewriteWikiLinksToMarkdownLinks } from '@/lib/wiki-links';
 import { EditNoteModal } from '@/components/EditNoteModal';
+import { PinButton } from '@/components/PinButton';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
+import { Bot, Clock, User } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -97,14 +101,51 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
 
   const panel = getDocPanelData(category, decodedSlug);
   const renderedMarkdown = rewriteWikiLinksToMarkdownLinks(doc.content);
+  const pinned = isPinned(category, decodedSlug);
+  const stats = getReadingStats(doc.content);
 
   return (
     <div className="max-w-7xl mx-auto py-8 md:py-24 px-4 md:px-8">
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 md:gap-8">
         <div>
+          {/* Breadcrumbs */}
+          <div className="mb-6">
+            <Breadcrumbs
+              items={[
+                { label: 'Docs', href: '/docs' },
+                { label: knownCategory.title, href: `/docs/${category}` },
+                { label: doc.title },
+              ]}
+            />
+          </div>
+
           <header className="mb-12 space-y-4">
-            <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{knownCategory.title}</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{knownCategory.title}</span>
+              </div>
+              {/* Author badge */}
+              {doc.author && (
+                <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest ${
+                  doc.author === 'agent'
+                    ? 'border-brand/30 bg-brand/10 text-brand'
+                    : 'border-zinc-500/30 bg-zinc-500/10 text-zinc-400'
+                }`}>
+                  {doc.author === 'agent' ? <Bot size={10} /> : <User size={10} />}
+                  {doc.author === 'agent' ? 'Ozzy' : 'You'}
+                </div>
+              )}
+              {/* Review status badge */}
+              {doc.review_status === 'pending' && (
+                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-[10px] font-black uppercase tracking-widest text-yellow-300">
+                  Awaiting review
+                </div>
+              )}
+              {doc.review_status === 'reviewed' && (
+                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-[10px] font-black uppercase tracking-widest text-emerald-300">
+                  Reviewed
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
@@ -112,12 +153,21 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
                 <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-[0.9] uppercase italic">
                   {doc.title}
                 </h1>
-                {doc.date && (
-                  <time className="text-brand font-mono text-sm block tracking-widest uppercase">Created {doc.date}</time>
-                )}
-                {doc.modified && (
-                  <time className="text-zinc-500 font-mono text-xs block tracking-widest uppercase">Modified {doc.modified}</time>
-                )}
+                <div className="flex items-center gap-3 flex-wrap text-sm">
+                  {doc.date && (
+                    <time className="text-brand font-mono tracking-widest uppercase">Created {doc.date}</time>
+                  )}
+                  {doc.modified && (
+                    <time className="text-zinc-500 font-mono text-xs tracking-widest uppercase">Modified {doc.modified}</time>
+                  )}
+                  <span className="inline-flex items-center gap-1 text-zinc-600 font-mono text-xs">
+                    <Clock size={11} />
+                    {stats.readingTime} min read
+                  </span>
+                  <span className="text-zinc-700 font-mono text-xs">
+                    {stats.words.toLocaleString()} words
+                  </span>
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {(doc.tags ?? []).length === 0 ? (
                     <span className="text-xs font-mono text-zinc-600">No tags</span>
@@ -134,16 +184,37 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
                   )}
                 </div>
               </div>
-              <EditNoteModal
-                category={category}
-                slug={doc.slug}
-                title={doc.title}
-                tags={doc.tags}
-                content={doc.content}
-                storageWarning={storage.warningBanner}
-              />
+              <div className="flex items-center gap-2">
+                <PinButton
+                  category={category}
+                  slug={doc.slug}
+                  title={doc.title}
+                  initialPinned={pinned}
+                />
+                <EditNoteModal
+                  category={category}
+                  slug={doc.slug}
+                  title={doc.title}
+                  tags={doc.tags}
+                  content={doc.content}
+                  storageWarning={storage.warningBanner}
+                />
+              </div>
             </div>
           </header>
+
+          {/* Agent Review Panel */}
+          {doc.ai_review && (
+            <div className="mb-8 glass rounded-2xl border-brand/20 bg-brand/5 p-5 md:p-6 space-y-2">
+              <div className="flex items-center gap-2">
+                <Bot size={14} className="text-brand" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand">Agent Review</span>
+              </div>
+              <div className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                {doc.ai_review}
+              </div>
+            </div>
+          )}
 
           <article className="prose prose-invert prose-zinc max-w-none glass p-6 md:p-12 rounded-[32px] md:rounded-[48px] border-white/5">
             <Markdown

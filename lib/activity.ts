@@ -142,3 +142,29 @@ export function getActivitySnapshot(limit = 200): ActivitySnapshot {
     lastActivityIso: events[0]?.timestampIso ?? null,
   };
 }
+
+export type HeatmapDay = { date: string; count: number };
+
+export function getActivityHeatmapData(days = 365): HeatmapDay[] {
+  const events = getActivityEvents(2000);
+  const counts = new Map<string, number>();
+
+  for (const event of events) {
+    const d = new Date(event.timestampIso);
+    if (Number.isNaN(d.getTime())) continue;
+    const date = d.toISOString().split('T')[0];
+    counts.set(date, (counts.get(date) ?? 0) + 1);
+  }
+
+  const result: HeatmapDay[] = [];
+  const today = new Date();
+
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const date = d.toISOString().split('T')[0];
+    result.push({ date, count: counts.get(date) ?? 0 });
+  }
+
+  return result;
+}

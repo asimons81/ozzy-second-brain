@@ -113,6 +113,14 @@ function systemsItems(): PaletteItem[] {
   }));
 }
 
+function stripMarkdown(content: string) {
+  return content
+    .replace(/^---[\s\S]*?---/m, '')
+    .replace(/[#*_`~\[\]()>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function docItems(): PaletteItem[] {
   return getAllDocs().map((doc) => ({
     id: `doc-${doc.category}-${doc.slug}`,
@@ -122,6 +130,7 @@ function docItems(): PaletteItem[] {
     group: `Docs/${doc.category}`,
     kind: 'link',
     keywords: `${doc.title} ${doc.category} ${doc.slug}`,
+    searchBody: stripMarkdown(doc.content).slice(0, 300),
   }));
 }
 

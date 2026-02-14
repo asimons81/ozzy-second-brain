@@ -1,9 +1,31 @@
 import Link from 'next/link';
-import { Clock3, ExternalLink, Layers, ListTodo, Server, Sparkles, Ticket } from 'lucide-react';
+import {
+  AlertTriangle,
+  Clock3,
+  ExternalLink,
+  Flame,
+  Layers,
+  ListTodo,
+  MessageSquare,
+  Server,
+  Sparkles,
+  Star,
+  Ticket,
+} from 'lucide-react';
 import { getActivitySnapshot } from '@/lib/activity';
+import { getActivityHeatmapData } from '@/lib/activity';
 import { readRecents, getStorageRuntimeInfo } from '@/lib/storage';
 import { readApprovedIdeas, readSidTickets } from '@/lib/pipeline';
 import { getSystemLinks } from '@/lib/systems';
+import { readPins } from '@/lib/pins';
+import {
+  getStaleNotes,
+  getWritingStreak,
+  getPipelineBottlenecks,
+  getCategoryDistribution,
+  getNeedsReviewNotes,
+} from '@/lib/dashboard';
+import { ActivityHeatmap } from '@/components/ActivityHeatmap';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,29 +55,110 @@ export default function NowPage() {
   const lastActivity = lastCandidates.sort((a, b) => ts(b) - ts(a))[0] ?? null;
 
   const systems = getSystemLinks();
+  const pins = readPins();
+  const streak = getWritingStreak();
+  const staleNotes = getStaleNotes(30, 5);
+  const bottlenecks = getPipelineBottlenecks(5);
+  const distribution = getCategoryDistribution();
+  const needsReview = getNeedsReviewNotes(5);
+  const heatmapData = getActivityHeatmapData(182);
+  const maxCategoryCount = Math.max(1, ...distribution.map((c) => c.count));
 
   return (
     <div className="max-w-6xl mx-auto py-8 md:py-16 px-4 md:px-10 space-y-8">
-      <section className="space-y-4">
-        <div className="inline-flex items-center gap-2 bg-brand/10 border border-brand/20 px-4 py-1 rounded-full">
-          <Sparkles size={13} className="text-brand" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-brand">Now Dashboard</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="glass rounded-2xl border-white/5 p-4">
-            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Storage Mode</div>
-            <div className="text-lg font-black tracking-tight mt-2">{storage.isEphemeral ? 'Ephemeral' : 'Local'}</div>
-            <div className="text-xs text-zinc-500 mt-1">{storage.dataDir}</div>
+      {/* Daily Briefing Card */}
+      <section className="glass rounded-2xl border-white/5 p-5 md:p-6">
+        <div className="flex items-start gap-4">
+          <div className="h-10 w-10 rounded-xl bg-brand/10 border border-brand/25 flex items-center justify-center shrink-0">
+            <Sparkles size={18} className="text-brand" />
           </div>
-          <div className="glass rounded-2xl border-white/5 p-4">
-            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Last Activity</div>
-            <div className="text-lg font-black tracking-tight mt-2">{lastActivity ? fmt(lastActivity) : 'No activity yet'}</div>
-            <div className="text-xs text-zinc-500 mt-1">Merged from notes, tickets, renders, and approvals</div>
+          <div className="min-w-0 space-y-2 flex-1">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand">Daily Briefing</span>
+              {storage.isEphemeral && (
+                <span className="text-[10px] font-mono text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded-md">
+                  Ephemeral mode
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-zinc-300 leading-relaxed">
+              {streak.current > 0 ? (
+                <span className="inline-flex items-center gap-1">
+                  <Flame size={14} className="text-orange-400" />
+                  <span className="font-bold text-orange-300">{streak.current}-day writing streak</span>
+                  {!streak.todayComplete && <span className="text-zinc-500"> — write today to keep it alive</span>}
+                  <span className="text-zinc-600 mx-1">|</span>
+                </span>
+              ) : (
+                <span className="text-zinc-500">Start a writing streak today | </span>
+              )}
+              {staleNotes.length > 0 && (
+                <span>{staleNotes.length} notes going stale | </span>
+              )}
+              {bottlenecks.length > 0 && (
+                <span>{bottlenecks.length} pipeline bottleneck{bottlenecks.length > 1 ? 's' : ''} | </span>
+              )}
+              {needsReview.length > 0 && (
+                <span className="text-brand">{needsReview.length} awaiting review</span>
+              )}
+              {staleNotes.length === 0 && bottlenecks.length === 0 && needsReview.length === 0 && (
+                <span className="text-emerald-400">All clear.</span>
+              )}
+            </p>
+            {lastActivity && (
+              <div className="text-[11px] font-mono text-zinc-600">
+                Last activity: {fmt(lastActivity)}
+              </div>
+            )}
           </div>
         </div>
       </section>
 
+      {/* Pinned Notes */}
+      {pins.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Star size={14} className="text-brand" />
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Pinned</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {pins.map((pin) => (
+              <Link
+                key={`${pin.category}/${pin.slug}`}
+                href={pin.href}
+                className="glass rounded-xl border-white/5 p-3 hover:bg-white/10 transition-all"
+              >
+                <div className="text-sm font-bold text-zinc-100 truncate">{pin.title}</div>
+                <div className="text-[10px] font-mono text-zinc-600 mt-1">{pin.category}</div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Needs Review */}
+      {needsReview.length > 0 && (
+        <section className="glass rounded-2xl border-brand/20 bg-brand/5 p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <MessageSquare size={14} className="text-brand" />
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-brand">Needs Agent Review</h2>
+          </div>
+          <div className="space-y-2">
+            {needsReview.map((note) => (
+              <Link
+                key={`${note.category}/${note.slug}`}
+                href={note.href}
+                className="block rounded-xl border border-brand/10 bg-black/20 px-3 py-3 hover:bg-white/5 transition-all"
+              >
+                <div className="text-sm font-bold text-zinc-100 truncate">{note.title}</div>
+                <div className="text-[11px] font-mono text-zinc-600 mt-1">{note.category} - pending review</div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Active + Recent */}
       <section className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-6">
         <div className="glass rounded-2xl border-white/5 p-5 space-y-4">
           <div className="flex items-center justify-between">
@@ -133,6 +236,62 @@ export default function NowPage() {
         </div>
       </section>
 
+      {/* Stale Notes + Category Distribution */}
+      <section className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-6">
+        {staleNotes.length > 0 && (
+          <div className="glass rounded-2xl border-white/5 p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={14} className="text-yellow-400" />
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-400/80">Going Stale</h2>
+            </div>
+            <div className="space-y-2">
+              {staleNotes.map((note) => (
+                <Link
+                  key={`${note.category}/${note.slug}`}
+                  href={note.href}
+                  className="block rounded-xl border border-white/10 bg-white/5 px-3 py-3 hover:bg-white/10 transition-all"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold text-zinc-100 truncate">{note.title}</div>
+                      <div className="text-[10px] font-mono text-zinc-600 mt-1">{note.category}</div>
+                    </div>
+                    <span className="text-[10px] font-mono text-yellow-400/60 shrink-0">
+                      {note.daysSinceModified}d ago
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="glass rounded-2xl border-white/5 p-5 space-y-4">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Knowledge Distribution</h2>
+          <div className="space-y-2">
+            {distribution.slice(0, 8).map((cat) => (
+              <Link
+                key={cat.category}
+                href={`/docs/${encodeURIComponent(cat.category)}`}
+                className="flex items-center gap-3 group"
+              >
+                <span className="text-xs font-bold text-zinc-400 group-hover:text-brand transition-colors w-28 truncate">
+                  {cat.title}
+                </span>
+                <div className="flex-1 h-4 rounded-full bg-white/5 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-brand/30 group-hover:bg-brand/50 transition-all"
+                    style={{ width: `${(cat.count / maxCategoryCount) * 100}%` }}
+                  />
+                </div>
+                <span className="text-[10px] font-mono text-zinc-600 w-6 text-right">{cat.count}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Queue + Systems */}
       <section className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-6">
         <div className="glass rounded-2xl border-white/5 p-5 space-y-4">
           <div className="flex items-center justify-between">
@@ -204,6 +363,17 @@ export default function NowPage() {
           ))}
           </div>
         </div>
+      </section>
+
+      {/* Activity Heatmap */}
+      <section className="glass rounded-2xl border-white/5 p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Activity (6 months)</h2>
+          <Link href="/activity" className="text-[11px] font-mono text-zinc-500 hover:text-brand">
+            Full timeline
+          </Link>
+        </div>
+        <ActivityHeatmap data={heatmapData} />
       </section>
     </div>
   );

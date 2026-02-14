@@ -51,6 +51,7 @@ export function QuickCaptureModal({
   const [body, setBody] = useState(
     categories.find((item) => item.key === firstCategory)?.defaultTemplate ?? '',
   );
+  const [requestReview, setRequestReview] = useState(firstCategory === 'ideas');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -75,7 +76,7 @@ export function QuickCaptureModal({
     setSaving(true);
     setError(null);
 
-    const result = await createNote({ title, category, tags, body });
+    const result = await createNote({ title, category, tags, body, author: 'user', requestReview });
 
     if (!result.ok) {
       setError(result.error);
@@ -93,6 +94,7 @@ export function QuickCaptureModal({
 
   const onCategoryChange = (next: string) => {
     setCategory(next);
+    setRequestReview(next === 'ideas');
 
     if (!body.trim()) {
       setBody(templateByCategory.get(next) ?? '');
@@ -184,6 +186,16 @@ export function QuickCaptureModal({
                 className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100"
                 placeholder="alpha, pipeline, notes"
               />
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={requestReview}
+                onChange={(event) => setRequestReview(event.target.checked)}
+                className="w-4 h-4 rounded border-white/20 bg-black/40 text-brand accent-[#00f2ff]"
+              />
+              <span className="text-xs font-bold text-zinc-400">Request agent review</span>
             </label>
 
             <label className="space-y-1 block">

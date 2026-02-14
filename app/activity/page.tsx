@@ -1,11 +1,13 @@
 import { Activity } from 'lucide-react';
 import { ActivityFeed } from '@/components/ActivityFeed';
-import { getActivityEvents } from '@/lib/activity';
+import { ActivityHeatmap } from '@/components/ActivityHeatmap';
+import { getActivityEvents, getActivityHeatmapData } from '@/lib/activity';
 
 export const dynamic = 'force-dynamic';
 
 export default function ActivityPage() {
   const events = getActivityEvents(400);
+  const heatmapData = getActivityHeatmapData(182);
 
   return (
     <div className="max-w-6xl mx-auto py-8 md:py-16 px-4 md:px-10 space-y-6">
@@ -21,6 +23,10 @@ export default function ActivityPage() {
           Merged events across note edits, Sid tickets, renders, and approvals.
         </p>
       </header>
+
+      <section className="glass rounded-2xl border-white/5 p-5">
+        <ActivityHeatmap data={heatmapData} />
+      </section>
 
       <ActivityFeed events={events} />
     </div>

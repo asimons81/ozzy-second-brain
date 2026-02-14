@@ -9,5 +9,6 @@ export type PaletteItem = {
   kind: 'link' | 'external' | 'action';
   actionId?: PaletteActionId;
   keywords?: string;
+  searchBody?: string;
 };
 

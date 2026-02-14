@@ -33,6 +33,15 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
       </header>
 
       <div className="grid grid-cols-1 gap-4">
+        {docs.length === 0 && (
+          <div className="glass rounded-[32px] border-white/5 p-8 md:p-12 text-center space-y-4">
+            <div className="text-5xl opacity-20">&#128221;</div>
+            <h3 className="text-xl font-bold text-zinc-300">No notes in {knownCategory.title} yet</h3>
+            <p className="text-sm text-zinc-500 max-w-md mx-auto">
+              Start building your knowledge base. Use Quick Capture (+) or press Cmd+K to create your first note.
+            </p>
+          </div>
+        )}
         {docs.map((doc) => (
           <Link
             key={doc.slug}
