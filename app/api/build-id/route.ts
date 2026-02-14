@@ -5,7 +5,6 @@ export async function GET(req: Request) {
   url.pathname = "/BUILD_ID";
   url.search = "";
 
-  // Return the BUILD_ID asset (served by the worker/assets)
   const res = await fetch(url.toString(), {
     headers: { "cache-control": "no-store" },
   });
@@ -13,9 +12,7 @@ export async function GET(req: Request) {
   return new Response(await res.text(), {
     headers: {
       "content-type": "text/plain; charset=utf-8",
-      "cache-control": "no
-
--store, max-age=0",
+      "cache-control": "no-store, max-age=0",
     },
   });
 }
