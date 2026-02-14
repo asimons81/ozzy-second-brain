@@ -5,7 +5,7 @@
 	"compatibility_date": "2026-02-14",
 	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
 	"vars": {
-  "NEXT_INC_CACHE_R2_PREFIX": "second-brain:"
+  "NEXT_INC_CACHE_R2_PREFIX": "ozzy-second-brain:"
 },
 
   "assets": {
