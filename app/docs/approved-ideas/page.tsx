@@ -3,8 +3,6 @@ import { CheckCircle, ArrowRight, Clock, Play } from 'lucide-react';
 import Link from 'next/link';
 import { readApprovedIdeas } from '@/lib/pipeline';
 
-export const dynamic = 'force-dynamic';
-
 export default async function ApprovedIdeasPage() {
   const approvedIdeas = readApprovedIdeas();
 

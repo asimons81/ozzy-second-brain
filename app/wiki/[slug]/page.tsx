@@ -2,8 +2,12 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { categories } from '@/lib/categories';
 import { resolveWikiSlugToDoc } from '@/lib/graph';
+import { getAllDocs } from '@/lib/brain';
 
-export const dynamic = 'force-dynamic';
+
+export async function generateStaticParams() {
+  return getAllDocs().map((doc) => ({ slug: doc.slug }));
+}
 
 function toTitleFromSlug(slug: string) {
   return slug

@@ -14,7 +14,6 @@ import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 import { Bot, Clock, User } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
 
 export async function generateStaticParams() {
   const categories = getCategories();

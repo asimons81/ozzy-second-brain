@@ -1,13 +1,10 @@
-import { getDoc } from '@/lib/brain';
+import { getDoc, getDocsByCategory } from '@/lib/brain';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, Clock, ExternalLink } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
-
 export async function generateStaticParams() {
-  // Will be populated at build time
-  return [];
+  return getDocsByCategory('approved-ideas').map((doc) => ({ slug: doc.slug }));
 }
 
 export default async function ApprovedIdeaPage({ params }: { params: Promise<{ slug: string }> }) {

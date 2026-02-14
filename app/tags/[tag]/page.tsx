@@ -1,7 +1,10 @@
 import Link from 'next/link';
-import { getDocsByTag, normalizeTag } from '@/lib/brain';
+import { getDocsByTag, getTagCounts, normalizeTag } from '@/lib/brain';
 
-export const dynamic = 'force-dynamic';
+
+export async function generateStaticParams() {
+  return getTagCounts().map((item) => ({ tag: item.tag }));
+}
 
 function noteHref(category: string, slug: string) {
   return `/docs/${encodeURIComponent(category)}/${encodeURIComponent(slug)}`;
