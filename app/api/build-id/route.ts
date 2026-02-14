@@ -1,22 +1,19 @@
-export const runtime = "edge";
+export const dynamic = "force-static";
 
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  url.pathname = "/BUILD_ID";
-  url.search = "";
+import { readFileSync } from "fs";
+import { join } from "path";
 
-  const res = await fetch(url.toString(), {
-    headers: { "cache-control": "no-store" },
-    redirect: "follow",
-  });
-
-  const text = await res.text();
-
-  return new Response(text, {
-    status: 200,
-    headers: {
-      "content-type": "text/plain; charset=utf-8",
-      "cache-control": "no-store, max-age=0",
-    },
-  });
+export async function GET() {
+  try {
+    const file = readFileSync(join(process.cwd(), "public", "BUILD_ID"), "utf-8").trim();
+    return new Response(file, {
+      status: 200,
+      headers: {
+        "content-type": "text/plain; charset=utf-8",
+        "cache-control": "no-store"
+      }
+    });
+  } catch {
+    return new Response("unknown", { status: 200 });
+  }
 }
