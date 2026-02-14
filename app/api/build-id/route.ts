@@ -1,19 +1,21 @@
 export const dynamic = "force-dynamic";
 
-import { readFileSync } from "fs";
-import { join } from "path";
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  url.pathname = "/BUILD_ID";
+  url.search = "";
 
-export async function GET() {
-  try {
-    const file = readFileSync(join(process.cwd(), "public", "BUILD_ID"), "utf-8").trim();
-    return new Response(file, {
-      status: 200,
-      headers: {
-        "content-type": "text/plain; charset=utf-8",
-        "cache-control": "no-store"
-      }
-    });
-  } catch {
-    return new Response("unknown", { status: 200 });
-  }
+  const res = await fetch(url.toString(), {
+    headers: { "cache-control": "no-store" }
+  });
+
+  const text = await res.text();
+
+  return new Response(text.trim(), {
+    status: 200,
+    headers: {
+      "content-type": "text/plain; charset=utf-8",
+      "cache-control": "no-store"
+    }
+  });
 }
