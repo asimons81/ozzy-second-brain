@@ -12,9 +12,20 @@ type EditNoteModalProps = {
   tags?: string[];
   content: string;
   storageWarning?: string | null;
+  writesAllowed: boolean;
+  readOnlyMessage: string;
 };
 
-export function EditNoteModal({ category, slug, title, tags, content, storageWarning }: EditNoteModalProps) {
+export function EditNoteModal({
+  category,
+  slug,
+  title,
+  tags,
+  content,
+  storageWarning,
+  writesAllowed,
+  readOnlyMessage,
+}: EditNoteModalProps) {
   const router = useRouter();
 
   const initialTags = useMemo(() => (tags ?? []).join(', '), [tags]);
@@ -26,6 +37,11 @@ export function EditNoteModal({ category, slug, title, tags, content, storageWar
   const [saving, setSaving] = useState(false);
 
   const openModal = () => {
+    if (!writesAllowed) {
+      setError(readOnlyMessage);
+      return;
+    }
+
     setNextTitle(title);
     setNextTags(initialTags);
     setNextBody(content);
@@ -41,7 +57,7 @@ export function EditNoteModal({ category, slug, title, tags, content, storageWar
   };
 
   const save = async () => {
-    if (saving) return;
+    if (saving || !writesAllowed) return;
 
     setSaving(true);
     setError(null);
@@ -69,11 +85,19 @@ export function EditNoteModal({ category, slug, title, tags, content, storageWar
       <button
         type="button"
         onClick={openModal}
-        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-200 transition-all"
+        disabled={!writesAllowed}
+        title={!writesAllowed ? readOnlyMessage : undefined}
+        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <PencilLine size={16} className="text-brand" />
         <span className="text-xs font-black uppercase tracking-widest">Edit</span>
       </button>
+
+      {!writesAllowed && error && (
+        <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
+          {error}
+        </div>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-[110]">
@@ -84,17 +108,6 @@ export function EditNoteModal({ category, slug, title, tags, content, storageWar
               onSubmit={(event) => {
                 event.preventDefault();
                 void save();
-              }}
-              onKeyDown={(event) => {
-                const isModifier = event.metaKey || event.ctrlKey;
-                if (event.key === 'Escape') {
-                  event.preventDefault();
-                  closeModal();
-                }
-                if (isModifier && event.key === 'Enter') {
-                  event.preventDefault();
-                  void save();
-                }
               }}
             >
               <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
@@ -167,7 +180,7 @@ export function EditNoteModal({ category, slug, title, tags, content, storageWar
                   </button>
                   <button
                     type="submit"
-                    disabled={saving}
+                    disabled={saving || !writesAllowed}
                     className="px-4 py-2 rounded-xl bg-brand/20 border border-brand/40 text-sm font-bold text-brand disabled:opacity-60"
                   >
                     {saving ? 'Saving...' : 'Save changes'}

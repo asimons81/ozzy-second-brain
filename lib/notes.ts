@@ -118,12 +118,14 @@ export function createNoteOnDisk(input: CreateNoteInput): NoteWriteResult {
     }
     const fileContent = matter.stringify(input.body?.trim() ?? '', frontmatter);
 
+    console.info('[notes] create attempt', { category, slug });
     storage.writeNote(category, slug, fileContent);
     upsertRecents(category, slug, title, date);
 
     return { success: true, href: noteRoute(category, slug), category, slug };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to create note.';
+    console.warn('[notes] create failed', { category: input.category, message });
     const info = getStorageRuntimeInfo();
     if (info.isEphemeral) {
       return {
@@ -161,12 +163,14 @@ export function updateNoteOnDisk(input: UpdateNoteInput): NoteWriteResult {
     };
 
     const nextContent = matter.stringify(input.body, nextData);
+    console.info('[notes] update attempt', { category, slug });
     storage.writeNote(category, slug, nextContent);
     upsertRecents(category, slug, title, now);
 
     return { success: true, href: noteRoute(category, slug), category, slug };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to save note.';
+    console.warn('[notes] update failed', { category: input.category, slug: input.slug, message });
     const info = getStorageRuntimeInfo();
     if (info.isEphemeral) {
       return {

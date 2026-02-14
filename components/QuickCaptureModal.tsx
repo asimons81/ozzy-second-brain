@@ -19,6 +19,8 @@ type QuickCaptureModalProps = {
   storageWarning?: string | null;
   presetCategory?: string;
   presetTitle?: string;
+  writesAllowed: boolean;
+  readOnlyMessage: string;
 };
 
 function resolveInitialCategory(
@@ -40,6 +42,8 @@ export function QuickCaptureModal({
   storageWarning,
   presetCategory,
   presetTitle,
+  writesAllowed,
+  readOnlyMessage,
 }: QuickCaptureModalProps) {
   const router = useRouter();
   const firstCategory = resolveInitialCategory(categories, presetCategory);
@@ -72,6 +76,10 @@ export function QuickCaptureModal({
 
   const runSubmit = async () => {
     if (saving) return;
+    if (!writesAllowed) {
+      setError(readOnlyMessage);
+      return;
+    }
 
     setSaving(true);
     setError(null);
@@ -111,17 +119,6 @@ export function QuickCaptureModal({
             event.preventDefault();
             void runSubmit();
           }}
-          onKeyDown={(event) => {
-            const isModifier = event.metaKey || event.ctrlKey;
-            if (event.key === 'Escape') {
-              event.preventDefault();
-              closeAndReset();
-            }
-            if (isModifier && event.key === 'Enter') {
-              event.preventDefault();
-              void runSubmit();
-            }
-          }}
         >
           <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
             <div className="flex items-center gap-2">
@@ -143,6 +140,11 @@ export function QuickCaptureModal({
                 {storageWarning}
               </div>
             )}
+            {!writesAllowed && (
+              <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
+                {readOnlyMessage}
+              </div>
+            )}
             {error && (
               <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
                 {error}
@@ -155,9 +157,10 @@ export function QuickCaptureModal({
                 <input
                   autoFocus
                   required
+                  disabled={!writesAllowed}
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100"
+                  className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100 disabled:opacity-60"
                   placeholder="Name this note"
                 />
               </label>
@@ -165,9 +168,10 @@ export function QuickCaptureModal({
               <label className="space-y-1">
                 <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Category</span>
                 <select
+                  disabled={!writesAllowed}
                   value={category}
                   onChange={(event) => onCategoryChange(event.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100"
+                  className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100 disabled:opacity-60"
                 >
                   {categories.map((item) => (
                     <option key={item.key} value={item.key}>
@@ -181,9 +185,10 @@ export function QuickCaptureModal({
             <label className="space-y-1 block">
               <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Tags</span>
               <input
+                disabled={!writesAllowed}
                 value={tags}
                 onChange={(event) => setTags(event.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100"
+                className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100 disabled:opacity-60"
                 placeholder="alpha, pipeline, notes"
               />
             </label>
@@ -191,9 +196,10 @@ export function QuickCaptureModal({
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
+                disabled={!writesAllowed}
                 checked={requestReview}
                 onChange={(event) => setRequestReview(event.target.checked)}
-                className="w-4 h-4 rounded border-white/20 bg-black/40 text-brand accent-[#00f2ff]"
+                className="w-4 h-4 rounded border-white/20 bg-black/40 text-brand accent-[#00f2ff] disabled:opacity-60"
               />
               <span className="text-xs font-bold text-zinc-400">Request agent review</span>
             </label>
@@ -201,9 +207,10 @@ export function QuickCaptureModal({
             <label className="space-y-1 block">
               <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Body</span>
               <textarea
+                disabled={!writesAllowed}
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
-                className="w-full min-h-[320px] rounded-2xl border border-white/10 bg-black/40 px-3 py-3 text-zinc-100 font-mono text-sm"
+                className="w-full min-h-[320px] rounded-2xl border border-white/10 bg-black/40 px-3 py-3 text-zinc-100 font-mono text-sm disabled:opacity-60"
                 placeholder="Capture the raw idea in markdown..."
               />
             </label>
@@ -221,7 +228,7 @@ export function QuickCaptureModal({
               </button>
               <button
                 type="submit"
-                disabled={saving}
+                disabled={saving || !writesAllowed}
                 className="px-4 py-2 rounded-xl bg-brand/20 border border-brand/40 text-sm font-bold text-brand disabled:opacity-60"
               >
                 {saving ? 'Saving...' : 'Create note'}
@@ -233,4 +240,3 @@ export function QuickCaptureModal({
     </div>
   );
 }
-

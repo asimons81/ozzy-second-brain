@@ -197,6 +197,8 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
                   tags={doc.tags}
                   content={doc.content}
                   storageWarning={storage.warningBanner}
+                  writesAllowed={storage.writesAllowed}
+                  readOnlyMessage="read-only deployment"
                 />
               </div>
             </div>
