@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Sidebar } from '@/components/Sidebar';
 import { GlobalActions } from '@/components/GlobalActions';
@@ -8,7 +7,6 @@ import { getPaletteItems } from '@/lib/palette';
 import { categories } from '@/lib/categories';
 import { getStorageRuntimeInfo } from '@/lib/storage';
 
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'OZZY COMMAND CENTER',
@@ -29,7 +27,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${spaceGrotesk.className} bg-black text-zinc-100 flex flex-col md:flex-row h-screen overflow-hidden noise`}>
+      <body className={`bg-black text-zinc-100 flex flex-col md:flex-row h-screen overflow-hidden noise`}>
         <Sidebar />
         <main className="flex-1 overflow-y-auto relative z-10 p-4 md:p-0">
           <div className="sticky top-0 z-20 px-4 md:px-12 py-4 md:py-6 bg-black/40 backdrop-blur-md border-b border-white/5 flex items-center justify-between gap-4">

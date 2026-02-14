@@ -1,0 +1,8 @@
+name = "ozzy-second-brain"
+main = ".open-next/worker.js"
+compatibility_date = "2026-02-14"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
