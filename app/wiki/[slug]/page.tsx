@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { categories } from '@/lib/categories';
-import { resolveWikiSlugToDoc } from '@/lib/graph';
+import { getWikiStaticSlugs, resolveWikiSlugToDoc } from '@/lib/graph';
 
-export const dynamic = 'force-dynamic';
+export function generateStaticParams() {
+  return getWikiStaticSlugs().map((slug) => ({ slug }));
+}
 
 function toTitleFromSlug(slug: string) {
   return slug

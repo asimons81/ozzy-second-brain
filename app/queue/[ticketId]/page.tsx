@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, FileJson } from 'lucide-react';
-import { getSidTicketByKey } from '@/lib/pipeline';
+import { getSidTicketByKey, readSidTickets } from '@/lib/pipeline';
 import { CopyButton } from '@/components/CopyButton';
 
-export const dynamic = 'force-dynamic';
+export function generateStaticParams() {
+  return readSidTickets().map((ticket) => ({ ticketId: ticket.key }));
+}
 
 function pretty(value: unknown) {
   return JSON.stringify(value, null, 2);

@@ -4,8 +4,6 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
-export const dynamic = 'force-dynamic';
-
 export async function generateStaticParams() {
   const categories = getCategories();
   return categories.map((category) => ({ category }));

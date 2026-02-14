@@ -265,6 +265,21 @@ export function resolveWikiSlugToDoc(slug: string) {
   return resolveWikiTargetToDoc(slug, resolver);
 }
 
+export function getWikiStaticSlugs() {
+  const docs = getAllDocs();
+  const slugs = new Set<string>();
+
+  for (const doc of docs) {
+    const normalizedSlug = normalizeWikiTarget(doc.slug);
+    if (normalizedSlug) slugs.add(normalizedSlug);
+
+    const normalizedTitle = normalizeWikiTarget(doc.title);
+    if (normalizedTitle) slugs.add(normalizedTitle);
+  }
+
+  return [...slugs].sort((a, b) => a.localeCompare(b));
+}
+
 export function getDocPanelData(category: string, slug: string): GraphDocPanel {
   const id = toCanonicalDocId(category, slug);
   const graph = getGraphIndex({ rebuildIfMissing: true });
