@@ -1,12 +1,21 @@
 export const runtime = "edge";
-export const dynamic = "force-dynamic";
 
-export async function GET() {
-  return new Response(process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA || "ok", {
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  url.pathname = "/BUILD_ID";
+  url.search = "";
+
+  // Return the BUILD_ID asset (served by the worker/assets)
+  const res = await fetch(url.toString(), {
+    headers: { "cache-control": "no-store" },
+  });
+
+  return new Response(await res.text(), {
     headers: {
       "content-type": "text/plain; charset=utf-8",
-      "cache-control": "no-store, no-cache, must-revalidate, max-age=0",
-      "pragma": "no-cache",
+      "cache-control": "no
+
+-store, max-age=0",
     },
   });
 }
