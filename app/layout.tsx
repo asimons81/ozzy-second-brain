@@ -42,6 +42,8 @@ export default function RootLayout({
               items={getPaletteItems()}
               captureCategories={captureCategories}
               storageWarning={storage.warningBanner}
+              writesAllowed={storage.writesAllowed}
+              readOnlyMessage="read-only deployment"
             />
           </div>
           {storage.warningBanner && (

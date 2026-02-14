@@ -26,11 +26,18 @@ export type StorageRuntimeInfo = {
   mode: StorageMode;
   dataDir: string;
   isEphemeral: boolean;
+  writesAllowed: boolean;
   warningBanner: string | null;
 };
 
 const DEFAULT_TMP_DIR = '/tmp/second-brain';
 const RECENTS_LIMIT = 50;
+
+export function getRuntimeLabel() {
+  if (process.env.CF_WORKER === '1') return 'workers';
+  if (process.env.NEXT_RUNTIME === 'edge') return 'edge';
+  return 'node';
+}
 
 function resolveStorageMode(): StorageMode {
   const configured = process.env.SECOND_BRAIN_STORAGE;
@@ -38,7 +45,7 @@ function resolveStorageMode(): StorageMode {
     return configured;
   }
 
-  if (process.env.VERCEL) {
+  if (process.env.VERCEL || process.env.CF_WORKER === '1' || process.env.CF_PAGES === '1') {
     return 'tmp';
   }
 
@@ -58,6 +65,13 @@ function resolveDataDir(mode: StorageMode): string {
   }
 
   return path.join(process.cwd(), 'content');
+}
+
+function resolveWritesAllowed(mode: StorageMode) {
+  if (process.env.CF_WORKER === '1' || process.env.CF_PAGES === '1') {
+    return false;
+  }
+  return mode === 'local';
 }
 
 function assertKnownCategory(category: string) {
@@ -149,6 +163,10 @@ class LocalFsStorage implements StorageAdapter {
   }
 
   writeNote(category: string, slug: string, md: string) {
+    if (!writesAllowed) {
+      throw new Error('read-only deployment');
+    }
+
     const safeCategory = assertKnownCategory(category);
     const safe = assertSafeSlug(slug);
     const dir = categoryDir(this.baseDir, safeCategory);
@@ -167,6 +185,7 @@ class LocalFsStorage implements StorageAdapter {
   }
 
   updateRecents(entry: RecentsEntry) {
+    if (!writesAllowed) return;
     writeRecents(this.baseDir, entry);
   }
 }
@@ -175,6 +194,7 @@ class VercelEphemeralStorage extends LocalFsStorage {}
 
 const mode = resolveStorageMode();
 const dataDir = resolveDataDir(mode);
+const writesAllowed = resolveWritesAllowed(mode);
 const adapter: StorageAdapter =
   mode === 'tmp'
     ? new VercelEphemeralStorage(dataDir)
@@ -191,9 +211,12 @@ export function getStorageRuntimeInfo(): StorageRuntimeInfo {
     mode,
     dataDir,
     isEphemeral,
-    warningBanner: isEphemeral
-      ? 'Ephemeral storage: saves may not persist after redeploy/cold start. Configure persistent storage for durable saves.'
-      : null,
+    writesAllowed,
+    warningBanner: writesAllowed
+      ? isEphemeral
+        ? 'Ephemeral storage: saves may not persist after redeploy/cold start. Configure persistent storage for durable saves.'
+        : null
+      : 'read-only deployment',
   };
 }
 

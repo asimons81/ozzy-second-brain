@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import matter from 'gray-matter';
 import { categories, getCategoryByKey } from '@/lib/categories';
 import { getStorageAdapter, readRecents } from '@/lib/storage';
@@ -25,6 +27,62 @@ export interface Doc {
   author?: 'user' | 'agent';
   review_status?: 'pending' | 'reviewed';
   ai_review?: string;
+}
+
+export type ContentSource = 'fs' | 'fetch-assets';
+
+const ASSET_CONTENT_DIR = path.join(process.cwd(), 'public', 'content');
+
+function safeLog(message: string, data?: Record<string, unknown>) {
+  console.info(`[brain] ${message}`, data ?? {});
+}
+
+export function getContentSource(): ContentSource {
+  const inWorkers = process.env.CF_WORKER === '1' || process.env.CF_PAGES === '1';
+  return inWorkers ? 'fetch-assets' : 'fs';
+}
+
+function getAssetIndex(): Record<string, string[]> {
+  const indexPath = path.join(ASSET_CONTENT_DIR, 'index.json');
+  if (!fs.existsSync(indexPath)) return {};
+
+  try {
+    return JSON.parse(fs.readFileSync(indexPath, 'utf-8')) as Record<string, string[]>;
+  } catch {
+    return {};
+  }
+}
+
+function listDocSlugs(category: string): string[] {
+  const source = getContentSource();
+
+  if (source === 'fetch-assets') {
+    const index = getAssetIndex();
+    const slugs = index[category] ?? [];
+    safeLog('content list', { source, category, count: slugs.length });
+    return slugs;
+  }
+
+  const slugs = getStorageAdapter().listNotes(category);
+  safeLog('content list', { source, category, count: slugs.length });
+  return slugs;
+}
+
+function readDocMarkdown(category: string, slug: string): string {
+  const source = getContentSource();
+
+  if (source === 'fetch-assets') {
+    const filePath = path.join(ASSET_CONTENT_DIR, category, `${slug}.md`);
+    if (!fs.existsSync(filePath)) {
+      throw new Error('Note not found.');
+    }
+
+    safeLog('content read', { source, category, slug });
+    return fs.readFileSync(filePath, 'utf-8');
+  }
+
+  safeLog('content read', { source, category, slug });
+  return getStorageAdapter().readNote(category, slug);
 }
 
 export function getReadingStats(content: string) {
@@ -97,13 +155,12 @@ export function getDocsByCategory(category: string): Doc[] {
   const known = getCategoryByKey(category);
   if (!known) return [];
 
-  const storage = getStorageAdapter();
-  const files = storage.listNotes(category).map((slug) => `${slug}.md`);
+  const files = listDocSlugs(category).map((slug) => `${slug}.md`);
 
   return files
     .map((file) => {
       const slug = file.replace('.md', '');
-      const fileContent = storage.readNote(category, slug);
+      const fileContent = readDocMarkdown(category, slug);
       const { data, content } = matter(fileContent);
 
       const fm = data as Record<string, unknown>;
@@ -142,7 +199,7 @@ export function getDoc(category: string, slug: string): Doc | null {
   if (!known) return null;
 
   try {
-    const fileContent = getStorageAdapter().readNote(category, slug);
+    const fileContent = readDocMarkdown(category, slug);
     const { data, content } = matter(fileContent);
     const fm = data as Record<string, unknown>;
 

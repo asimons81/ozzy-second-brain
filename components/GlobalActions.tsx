@@ -16,9 +16,17 @@ type GlobalActionsProps = {
   items: PaletteItem[];
   captureCategories: CaptureCategory[];
   storageWarning?: string | null;
+  writesAllowed: boolean;
+  readOnlyMessage: string;
 };
 
-export function GlobalActions({ items, captureCategories, storageWarning }: GlobalActionsProps) {
+export function GlobalActions({
+  items,
+  captureCategories,
+  storageWarning,
+  writesAllowed,
+  readOnlyMessage,
+}: GlobalActionsProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [captureOpen, setCaptureOpen] = useState(false);
@@ -33,6 +41,11 @@ export function GlobalActions({ items, captureCategories, storageWarning }: Glob
   };
 
   const openCapture = (presetCategory?: string, presetTitle?: string) => {
+    if (!writesAllowed) {
+      showToast(readOnlyMessage);
+      return;
+    }
+
     setCapturePresetCategory(presetCategory);
     setCapturePresetTitle(presetTitle);
     setCaptureSession((v) => v + 1);
@@ -52,7 +65,7 @@ export function GlobalActions({ items, captureCategories, storageWarning }: Glob
   };
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !writesAllowed) return;
     const searchParams = new URLSearchParams(window.location.search);
     const shouldOpen = searchParams.get('capture');
     if (shouldOpen !== '1' && shouldOpen !== 'true') return;
@@ -74,14 +87,16 @@ export function GlobalActions({ items, captureCategories, storageWarning }: Glob
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname);
 
     return () => window.clearTimeout(timer);
-  }, [pathname, router]);
+  }, [pathname, router, writesAllowed]);
 
   return (
     <>
       <div className="flex items-center gap-2">
         <button
           onClick={() => openCapture()}
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-brand/40 bg-brand/10 hover:bg-brand/20 text-brand transition-all"
+          disabled={!writesAllowed}
+          title={!writesAllowed ? readOnlyMessage : undefined}
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-brand/40 bg-brand/10 hover:bg-brand/20 text-brand transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus size={16} />
           <span className="text-xs font-black uppercase tracking-widest">+ Capture</span>
@@ -98,6 +113,8 @@ export function GlobalActions({ items, captureCategories, storageWarning }: Glob
         storageWarning={storageWarning}
         presetCategory={capturePresetCategory}
         presetTitle={capturePresetTitle}
+        writesAllowed={writesAllowed}
+        readOnlyMessage={readOnlyMessage}
       />
 
       {toast && (
@@ -108,4 +125,3 @@ export function GlobalActions({ items, captureCategories, storageWarning }: Glob
     </>
   );
 }
-
