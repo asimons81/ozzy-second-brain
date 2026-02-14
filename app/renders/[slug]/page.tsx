@@ -10,6 +10,8 @@ export async function generateStaticParams() {
   return docs.map((d) => ({ slug: d.slug }));
 }
 
+export const dynamicParams = false;
+
 export default async function RenderDetail({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const decoded = decodeURIComponent(slug);
