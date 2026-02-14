@@ -60,6 +60,10 @@ function resolveDataDir(mode: StorageMode): string {
       : path.join(process.cwd(), configured);
   }
 
+  if (process.env.CF_WORKER === '1' || process.env.CF_PAGES === '1') {
+    return path.join(process.cwd(), 'public', 'content');
+  }
+
   if (mode === 'tmp') {
     return DEFAULT_TMP_DIR;
   }
