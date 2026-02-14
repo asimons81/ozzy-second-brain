@@ -7,7 +7,8 @@
     "prebuild": "node scripts/sync-content.mjs",
     "build": "NEXT_DISABLE_ESLINT=1 next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "deploy": "npx @opennextjs/cloudflare build && npx @opennextjs/cloudflare deploy"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",
