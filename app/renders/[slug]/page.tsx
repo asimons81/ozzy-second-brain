@@ -5,6 +5,9 @@ import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 
+export const dynamic = 'force-static';
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   const docs = getDocsByCategory('renders');
   return docs.map((d) => ({ slug: d.slug }));
