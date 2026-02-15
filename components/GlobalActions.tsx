@@ -155,14 +155,16 @@ export function GlobalActions({
           <div className="absolute left-1/2 top-24 w-[min(560px,calc(100vw-24px))] -translate-x-1/2 rounded-2xl border border-white/10 bg-black p-5 space-y-4">
             <div>
               <h3 className="text-sm font-black uppercase tracking-widest text-zinc-100">Admin Token</h3>
-              <p className="mt-1 text-xs text-zinc-400">Stored in localStorage and sent as Bearer token for PUT/DELETE.</p>
+              <p className="mt-1 text-xs text-zinc-400">
+                Stored in localStorage as second-brain-admin-token (also reads SECOND_BRAIN_ADMIN_TOKEN) and sent as Bearer token for PUT/DELETE.
+              </p>
             </div>
             <input
               type="password"
               value={draftAdminToken}
               onChange={(event) => setDraftAdminToken(event.target.value)}
               className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100"
-              placeholder="Paste SECOND_BRAIN_ADMIN_TOKEN"
+              placeholder="Paste admin token (stored as second-brain-admin-token; also accepts SECOND_BRAIN_ADMIN_TOKEN)"
             />
             <div className="flex items-center justify-end gap-2">
               <button
