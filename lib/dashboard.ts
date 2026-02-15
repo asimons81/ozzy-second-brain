@@ -2,7 +2,7 @@ import 'server-only';
 
 import { getAllDocs, type Doc } from '@/lib/brain';
 import { readRecents } from '@/lib/storage';
-import { readApprovedIdeas, readSidTickets } from '@/lib/pipeline';
+import { readApprovedIdeas } from '@/lib/pipeline';
 import { categories } from '@/lib/categories';
 
 export type StaleNote = {
@@ -20,7 +20,7 @@ export type WritingStreak = {
 };
 
 export type PipelineBottleneck = {
-  type: 'approved_no_output' | 'stale_ticket';
+  type: 'approved_no_output';
   title: string;
   href: string;
   ageDays: number;
@@ -138,17 +138,6 @@ export async function getPipelineBottlenecks(limit = 5): Promise<PipelineBottlen
       type: 'approved_no_output',
       title: idea.title,
       href: idea.href,
-      ageDays: age,
-    });
-  }
-
-  const tickets = (await readSidTickets()).filter((t) => t.isStale);
-  for (const ticket of tickets) {
-    const age = daysBetween(now, new Date(ticket.createdAt));
-    bottlenecks.push({
-      type: 'stale_ticket',
-      title: ticket.sourceIdeaSlug ?? ticket.id,
-      href: ticket.href,
       ageDays: age,
     });
   }

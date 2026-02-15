@@ -20,7 +20,7 @@ export default async function ActivityPage() {
           Unified <br /> <span className="text-zinc-500">Timeline</span>
         </h1>
         <p className="text-zinc-400 max-w-2xl font-medium">
-          Merged events across note edits, Sid tickets, renders, and approvals.
+          Merged events across note edits, renders, and approvals.
         </p>
       </header>
 

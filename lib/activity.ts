@@ -5,7 +5,6 @@ import path from 'path';
 import matter from 'gray-matter';
 import { getDoc, getDocsByCategory } from '@/lib/brain';
 import { readRecents, getStorageRuntimeInfo } from '@/lib/storage';
-import { readSidTickets } from '@/lib/pipeline';
 
 export type ActivityEvent = {
   id: string;
@@ -97,20 +96,6 @@ async function recentsEvents(): Promise<ActivityEvent[]> {
   );
 }
 
-async function ticketEvents(): Promise<ActivityEvent[]> {
-  return (await readSidTickets()).map((ticket) => ({
-    id: `ticket:${ticket.key}:${ticket.createdAt}`,
-    type: 'ticket_created',
-    title: `Sid ticket: ${ticket.sourceIdeaSlug ?? ticket.id}`,
-    timestampIso: ticket.createdAt,
-    href: ticket.href,
-    meta: {
-      status: ticket.derivedStatus,
-      id: ticket.id,
-    },
-  }));
-}
-
 async function renderEvents(): Promise<ActivityEvent[]> {
   return (await getDocsByCategory('renders')).map((render) => {
     const timestampIso = safeIso(render.modified) ?? safeIso(render.date) ?? new Date(0).toISOString();
@@ -130,7 +115,6 @@ async function renderEvents(): Promise<ActivityEvent[]> {
 export async function getActivityEvents(limit = 200): Promise<ActivityEvent[]> {
   const events = [
     ...(await recentsEvents()),
-    ...(await ticketEvents()),
     ...(await renderEvents()),
     ...(await readApprovedIdeaEvents()),
   ].sort((a, b) => new Date(b.timestampIso).getTime() - new Date(a.timestampIso).getTime());
