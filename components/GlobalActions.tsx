@@ -166,11 +166,15 @@ export function GlobalActions({
         ) : (
           <a
             href="/api/auth/login"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-200 transition-all"
+            aria-label="Sign in with Google"
             title="Sign in with Google"
+            className="inline-flex shrink-0 items-center gap-1 px-2.5 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-200 transition-all"
           >
-            <KeyRound size={14} className="text-zinc-400" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Sign in</span>
+            <KeyRound size={16} className="text-zinc-400" />
+            <span className="text-[11px] font-black uppercase tracking-widest md:hidden">Sign in</span>
+            <span className="hidden text-[11px] font-black uppercase tracking-widest md:inline">
+              Sign in with Google
+            </span>
           </a>
         )}
 
