@@ -26,6 +26,22 @@ Expected:
 Expected:
 - Idea is removed from `ideas`.
 
+## Approved idea reversal actions
+1. Approve -> Revert (from `/docs/approved-ideas/{slug}` via "Move back to Ideas").
+Expected:
+- Redirect to `/docs/ideas/{slug}`.
+- Idea appears in `ideas`.
+- Idea is removed from `approved-ideas`.
+- A decision row exists with `decision = 'reverted'`.
+
+2. Approve -> Reject (from `/docs/approved-ideas/{slug}` via "Reject" with reason).
+Expected:
+- Redirect to `/docs/approved-ideas`.
+- Idea is removed from `approved-ideas`.
+- A decision row exists with:
+  - `decision = 'rejected'`
+  - `reason` set to entered value.
+
 ## Partial-success scenario (required contract)
 Simulate: note operation succeeds, but D1 decision logging fails.
 
@@ -34,10 +50,10 @@ Expected server action response:
 { "success": false, "error": "Decision logging failed after note update/move/delete." }
 ```
 
-Expected UI behavior in idea card:
-- Error string is shown verbatim:
+Expected UI behavior in idea card/approved-idea actions panel:
+- Error string is shown verbatim (no paraphrase):
   - `Decision logging failed after note update/move/delete.`
-- Card remains visible (`success:false`).
+- Item/page remains visible (`success:false`) and there is no redirect.
 
 ## Validation commands
 ```bash
