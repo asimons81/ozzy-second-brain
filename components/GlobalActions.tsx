@@ -166,11 +166,11 @@ export function GlobalActions({
         ) : (
           <a
             href="/api/auth/login"
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-200 transition-all"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-200 transition-all"
             title="Sign in with Google"
           >
-            <KeyRound size={16} className="text-zinc-400" />
-            <span className="text-xs font-black uppercase tracking-widest">Sign in with Google</span>
+            <KeyRound size={14} className="text-zinc-400" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Sign in</span>
           </a>
         )}
 
