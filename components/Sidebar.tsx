@@ -82,7 +82,7 @@ export function Sidebar() {
         fixed inset-0 z-40 transform transition-all duration-300 ease-in-out md:relative md:translate-x-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         ${isCollapsed ? 'md:w-24' : 'md:w-80'}
-        w-full h-full bg-[#080808] border-r border-white/5 flex flex-col overflow-y-auto
+        w-full h-full bg-surface-low border-r border-white/5 flex flex-col overflow-y-auto
       `}
       >
         <button
@@ -95,7 +95,7 @@ export function Sidebar() {
         <div className={`p-8 hidden md:block transition-all ${isCollapsed ? 'opacity-0 scale-50' : 'opacity-100 scale-100'}`}>
           {!isCollapsed && (
             <div className="flex items-center gap-3 mb-12">
-              <div className="bg-brand p-2 rounded-xl shadow-[0_0_20px_rgba(79,183,160,0.4)]">
+              <div className="bg-brand p-2 rounded-2xl shadow-lg shadow-brand/20">
                 <Rocket size={24} className="text-white" />
               </div>
               <div>
@@ -108,7 +108,7 @@ export function Sidebar() {
 
         {isCollapsed && (
           <div className="hidden md:flex flex-col items-center py-8 mb-4">
-            <div className="bg-brand p-2 rounded-xl shadow-[0_0_20px_rgba(79,183,160,0.4)]">
+            <div className="bg-brand p-2 rounded-2xl shadow-lg shadow-brand/20">
               <Rocket size={24} className="text-white" />
             </div>
           </div>
@@ -150,7 +150,7 @@ export function Sidebar() {
 
         <div className="p-6 mt-auto border-t border-white/5">
           <div className={`glass p-4 rounded-2xl flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} transition-all`}>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand to-emerald-600 flex-shrink-0 flex items-center justify-center font-black italic">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand to-brand-muted flex-shrink-0 flex items-center justify-center font-black italic">
               T
             </div>
             {!isCollapsed && (

@@ -22,11 +22,11 @@ export function IdeaCard({ doc }: { doc: Doc }) {
   };
 
   return (
-    <div className={`group glass p-6 md:p-8 rounded-[32px] border-white/5 hover:bg-white/5 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
+    <div className={`group glass p-6 md:p-8 rounded-2xl border-white/5 hover:bg-white/5 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
       <div className="space-y-3 flex-1 min-w-0">
         <div className="flex items-center space-x-2">
           {doc.score && (
-            <span className="text-[10px] font-black bg-brand/20 text-brand px-2 py-0.5 rounded-full border border-brand/20">
+            <span className="text-[10px] font-black bg-brand-muted text-brand px-2 py-0.5 rounded-full border border-brand/20">
               {doc.score} PTS
             </span>
           )}
@@ -50,7 +50,7 @@ export function IdeaCard({ doc }: { doc: Doc }) {
             href={doc.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-3 rounded-2xl bg-zinc-900 border border-white/5 text-zinc-400 hover:text-white hover:border-white/20 transition-all"
+            className="p-3 rounded-2xl bg-surface-med border border-white/5 text-zinc-400 hover:text-white hover:border-white/20 transition-all"
             title="Open Source"
           >
             <ExternalLink size={20} />
@@ -58,21 +58,21 @@ export function IdeaCard({ doc }: { doc: Doc }) {
         )}
         <button
           onClick={() => handleAction(rejectIdea)}
-          className="p-3 rounded-2xl bg-zinc-900 border border-white/5 text-zinc-500 hover:text-red-400 hover:border-red-400/50 transition-all"
+          className="p-3 rounded-2xl bg-surface-med border border-white/5 text-zinc-500 hover:text-red-400 hover:border-red-400/50 transition-all"
           title="Reject Idea"
         >
           <X size={20} />
         </button>
         <button
           onClick={() => handleAction(deleteIdea)}
-          className="p-3 rounded-2xl bg-zinc-900 border border-white/5 text-zinc-500 hover:text-zinc-200 hover:border-zinc-500 transition-all"
+          className="p-3 rounded-2xl bg-surface-med border border-white/5 text-zinc-500 hover:text-zinc-200 hover:border-zinc-500 transition-all"
           title="Hard Delete"
         >
           <Trash2 size={20} />
         </button>
         <button
           onClick={() => handleAction(approveIdea)}
-          className="p-4 rounded-2xl bg-brand/10 border border-brand/20 text-brand hover:bg-brand hover:text-black transition-all shadow-lg shadow-brand/5"
+          className="p-4 rounded-2xl bg-brand-muted/50 border border-brand/20 text-brand hover:bg-brand hover:text-black transition-all shadow-lg shadow-brand/10"
           title="Approve & Send to Pipeline"
         >
           <Check size={24} />
