@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
-import { createNote } from '@/app/actions/notes';
 
 type CaptureCategory = {
   key: string;
@@ -21,6 +20,7 @@ type QuickCaptureModalProps = {
   presetTitle?: string;
   writesAllowed: boolean;
   readOnlyMessage: string;
+  adminToken: string;
 };
 
 function resolveInitialCategory(
@@ -34,6 +34,30 @@ function resolveInitialCategory(
   return first;
 }
 
+function slugify(value: string) {
+  const normalized = value
+    .toLowerCase()
+    .trim()
+    .replace(/["'`]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return normalized || 'untitled';
+}
+
+function makeUniqueSlug(title: string, existing: Set<string>) {
+  const base = slugify(title);
+  let slug = base;
+  let counter = 2;
+
+  while (existing.has(slug)) {
+    slug = `${base}-${counter}`;
+    counter += 1;
+  }
+
+  return slug;
+}
+
 export function QuickCaptureModal({
   open,
   onClose,
@@ -44,6 +68,7 @@ export function QuickCaptureModal({
   presetTitle,
   writesAllowed,
   readOnlyMessage,
+  adminToken,
 }: QuickCaptureModalProps) {
   const router = useRouter();
   const firstCategory = resolveInitialCategory(categories, presetCategory);
@@ -76,7 +101,8 @@ export function QuickCaptureModal({
 
   const runSubmit = async () => {
     if (saving) return;
-    if (!writesAllowed) {
+
+    if (!writesAllowed || !adminToken.trim()) {
       setError(readOnlyMessage);
       return;
     }
@@ -84,18 +110,53 @@ export function QuickCaptureModal({
     setSaving(true);
     setError(null);
 
-    const result = await createNote({ title, category, tags, body, author: 'user', requestReview });
+    try {
+      const listRes = await fetch(`/api/notes?category=${encodeURIComponent(category)}`, {
+        cache: 'no-store',
+      });
 
-    if (!result.ok) {
-      setError(result.error);
+      if (!listRes.ok) {
+        const payload = (await listRes.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(payload?.error ?? 'Unable to list existing notes.');
+      }
+
+      const listing = (await listRes.json()) as {
+        notes?: Array<{ slug: string }>;
+      };
+
+      const existing = new Set((listing.notes ?? []).map((item) => item.slug));
+      const nextSlug = makeUniqueSlug(title, existing);
+
+      const putRes = await fetch(`/api/notes/${encodeURIComponent(category)}/${encodeURIComponent(nextSlug)}`, {
+        method: 'PUT',
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${adminToken.trim()}`,
+        },
+        body: JSON.stringify({
+          title,
+          tags,
+          content: body,
+          requestReview,
+          author: 'user',
+        }),
+      });
+
+      const payload = (await putRes.json().catch(() => null)) as { error?: string; href?: string } | null;
+
+      if (!putRes.ok) {
+        throw new Error(payload?.error ?? 'Unable to create note.');
+      }
+
+      onCreated?.(title.trim());
+      closeAndReset();
+      router.push(payload?.href ?? `/docs/${encodeURIComponent(category)}/${encodeURIComponent(nextSlug)}`);
+      router.refresh();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to create note.';
+      setError(message);
       setSaving(false);
-      return;
     }
-
-    onCreated?.(title.trim());
-    closeAndReset();
-    router.push(result.href);
-    router.refresh();
   };
 
   if (!open) return null;
@@ -140,7 +201,7 @@ export function QuickCaptureModal({
                 {storageWarning}
               </div>
             )}
-            {!writesAllowed && (
+            {(!writesAllowed || !adminToken.trim()) && (
               <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
                 {readOnlyMessage}
               </div>
@@ -157,7 +218,7 @@ export function QuickCaptureModal({
                 <input
                   autoFocus
                   required
-                  disabled={!writesAllowed}
+                  disabled={!writesAllowed || !adminToken.trim()}
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                   className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100 disabled:opacity-60"
@@ -168,7 +229,7 @@ export function QuickCaptureModal({
               <label className="space-y-1">
                 <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Category</span>
                 <select
-                  disabled={!writesAllowed}
+                  disabled={!writesAllowed || !adminToken.trim()}
                   value={category}
                   onChange={(event) => onCategoryChange(event.target.value)}
                   className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100 disabled:opacity-60"
@@ -185,7 +246,7 @@ export function QuickCaptureModal({
             <label className="space-y-1 block">
               <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Tags</span>
               <input
-                disabled={!writesAllowed}
+                disabled={!writesAllowed || !adminToken.trim()}
                 value={tags}
                 onChange={(event) => setTags(event.target.value)}
                 className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100 disabled:opacity-60"
@@ -196,7 +257,7 @@ export function QuickCaptureModal({
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                disabled={!writesAllowed}
+                disabled={!writesAllowed || !adminToken.trim()}
                 checked={requestReview}
                 onChange={(event) => setRequestReview(event.target.checked)}
                 className="w-4 h-4 rounded border-white/20 bg-black/40 text-brand accent-[#00f2ff] disabled:opacity-60"
@@ -207,7 +268,7 @@ export function QuickCaptureModal({
             <label className="space-y-1 block">
               <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Body</span>
               <textarea
-                disabled={!writesAllowed}
+                disabled={!writesAllowed || !adminToken.trim()}
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
                 className="w-full min-h-[320px] rounded-2xl border border-white/10 bg-black/40 px-3 py-3 text-zinc-100 font-mono text-sm disabled:opacity-60"
@@ -228,7 +289,7 @@ export function QuickCaptureModal({
               </button>
               <button
                 type="submit"
-                disabled={saving || !writesAllowed}
+                disabled={saving || !writesAllowed || !adminToken.trim()}
                 className="px-4 py-2 rounded-xl bg-brand/20 border border-brand/40 text-sm font-bold text-brand disabled:opacity-60"
               >
                 {saving ? 'Saving...' : 'Create note'}

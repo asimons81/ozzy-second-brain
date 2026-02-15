@@ -1,10 +1,11 @@
-import { getDocsByCategory } from '@/lib/brain';
 import { CheckCircle, ArrowRight, Clock, Play } from 'lucide-react';
 import Link from 'next/link';
 import { readApprovedIdeas } from '@/lib/pipeline';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ApprovedIdeasPage() {
-  const approvedIdeas = readApprovedIdeas();
+  const approvedIdeas = await readApprovedIdeas();
 
   return (
     <div className="max-w-5xl mx-auto py-12 md:py-24 px-4 md:px-8 space-y-16">
@@ -31,8 +32,8 @@ export default async function ApprovedIdeasPage() {
           <CheckCircle size={48} className="mx-auto text-zinc-600 mb-4" />
           <p className="text-zinc-400 font-medium text-lg">No approved ideas yet.</p>
           <p className="text-zinc-600 text-sm mt-2">Go to Ideas Mission Control to approve ideas and start production.</p>
-          <Link 
-            href="/docs/ideas" 
+          <Link
+            href="/docs/ideas"
             className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-brand text-black font-black uppercase tracking-widest text-sm rounded-xl hover:bg-brand/80 transition-colors"
           >
             Browse Ideas <ArrowRight size={16} />
@@ -66,7 +67,7 @@ export default async function ApprovedIdeasPage() {
                     <Clock size={14} />
                     <span>{new Date(idea.modifiedAt).toLocaleDateString()}</span>
                   </div>
-                  
+
                   <Link
                     href={`/docs/approved-ideas/${idea.slug}`}
                     className="p-3 rounded-2xl bg-zinc-900 border border-white/5 text-zinc-400 hover:text-white hover:border-white/20 transition-all"
@@ -74,7 +75,7 @@ export default async function ApprovedIdeasPage() {
                   >
                     <ArrowRight size={20} />
                   </Link>
-                  
+
                   {idea.outputExists && idea.outputHref && (
                     <Link
                       href={idea.outputHref}

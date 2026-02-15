@@ -1,14 +1,10 @@
-import { getDocsByCategory, getCategories } from '@/lib/brain';
+import { getDocsByCategory } from '@/lib/brain';
 import { getCategoryByKey } from '@/lib/categories';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
-
-export async function generateStaticParams() {
-  const categories = getCategories();
-  return categories.map((category) => ({ category }));
-}
+export const dynamic = 'force-dynamic';
 
 export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
   const { category } = await params;
@@ -18,7 +14,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
     notFound();
   }
 
-  const docs = getDocsByCategory(category);
+  const docs = await getDocsByCategory(category);
 
   return (
     <div className="max-w-4xl mx-auto py-12 md:py-24 px-4 md:px-8 space-y-12">

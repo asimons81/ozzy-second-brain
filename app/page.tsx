@@ -37,14 +37,14 @@ function fmt(iso: string) {
   return new Date(iso).toLocaleString();
 }
 
-export default function NowPage() {
-  const storage = getStorageRuntimeInfo();
-  const recents = readRecents(10);
-  const tickets = readSidTickets();
+export default async function NowPage() {
+  const storage = await getStorageRuntimeInfo();
+  const recents = await readRecents(10);
+  const tickets = await readSidTickets();
   const queueTop = tickets.slice(0, 10);
   const openTickets = tickets.filter((ticket) => ticket.derivedStatus === 'pending');
-  const approvedPending = readApprovedIdeas().filter((idea) => !idea.outputExists);
-  const activity = getActivitySnapshot(200);
+  const approvedPending = (await readApprovedIdeas()).filter((idea) => !idea.outputExists);
+  const activity = await getActivitySnapshot(200);
 
   const lastCandidates = [
     ...(activity.lastActivityIso ? [activity.lastActivityIso] : []),
@@ -55,13 +55,13 @@ export default function NowPage() {
   const lastActivity = lastCandidates.sort((a, b) => ts(b) - ts(a))[0] ?? null;
 
   const systems = getSystemLinks();
-  const pins = readPins();
-  const streak = getWritingStreak();
-  const staleNotes = getStaleNotes(30, 5);
-  const bottlenecks = getPipelineBottlenecks(5);
-  const distribution = getCategoryDistribution();
-  const needsReview = getNeedsReviewNotes(5);
-  const heatmapData = getActivityHeatmapData(182);
+  const pins = await readPins();
+  const streak = await getWritingStreak();
+  const staleNotes = await getStaleNotes(30, 5);
+  const bottlenecks = await getPipelineBottlenecks(5);
+  const distribution = await getCategoryDistribution();
+  const needsReview = await getNeedsReviewNotes(5);
+  const heatmapData = await getActivityHeatmapData(182);
   const maxCategoryCount = Math.max(1, ...distribution.map((c) => c.count));
 
   return (

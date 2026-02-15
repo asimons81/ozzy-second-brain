@@ -12,12 +12,13 @@ export const metadata: Metadata = {
   description: 'Externalized knowledge base and content engine.',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const storage = getStorageRuntimeInfo();
+  const storage = await getStorageRuntimeInfo();
+  const paletteItems = await getPaletteItems();
   const captureCategories = categories.map((category) => ({
     key: category.key,
     title: category.title,
@@ -36,7 +37,7 @@ export default function RootLayout({
               <TopNav />
             </div>
             <GlobalActions
-              items={getPaletteItems()}
+              items={paletteItems}
               captureCategories={captureCategories}
               storageWarning={storage.warningBanner}
               writesAllowed={storage.writesAllowed}

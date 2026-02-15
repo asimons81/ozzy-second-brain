@@ -2,10 +2,11 @@ import { getDocsByCategory } from '@/lib/brain';
 import { IdeaCard } from '@/components/IdeaCard';
 import { Sparkles, Trash2, Filter, Clock } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default async function IdeasPage() {
-  const allIdeas = getDocsByCategory('ideas');
-  
-  // Sort by score if available, otherwise date
+  const allIdeas = await getDocsByCategory('ideas');
+
   const sortedIdeas = [...allIdeas].sort((a, b) => {
     const scoreA = Number(a.score) || 0;
     const scoreB = Number(b.score) || 0;
@@ -35,7 +36,6 @@ export default async function IdeasPage() {
         </div>
       </header>
 
-      {/* High Signal Section */}
       <section className="space-y-8">
         <div className="flex items-center space-x-4 border-b border-white/5 pb-4">
            <Filter size={18} className="text-brand" />
@@ -53,7 +53,6 @@ export default async function IdeasPage() {
         </div>
       </section>
 
-      {/* Backburner Section */}
       <section className="space-y-8 opacity-60 hover:opacity-100 transition-opacity">
         <div className="flex items-center space-x-4 border-b border-white/5 pb-4">
            <Clock size={18} className="text-zinc-500" />
@@ -70,7 +69,7 @@ export default async function IdeasPage() {
           </div>
         )}
       </section>
-      
+
       <footer className="pt-12 flex justify-center">
         <div className="inline-flex items-center space-x-2 text-zinc-700">
            <Trash2 size={12} />

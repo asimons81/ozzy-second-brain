@@ -1,15 +1,13 @@
-import { getDoc, getDocsByCategory } from '@/lib/brain';
+import { getDoc } from '@/lib/brain';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, Clock, ExternalLink } from 'lucide-react';
 
-export async function generateStaticParams() {
-  return getDocsByCategory('approved-ideas').map((doc) => ({ slug: doc.slug }));
-}
+export const dynamic = 'force-dynamic';
 
 export default async function ApprovedIdeaPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const doc = getDoc('approved-ideas', slug);
+  const doc = await getDoc('approved-ideas', slug);
 
   if (!doc) {
     notFound();
@@ -17,8 +15,8 @@ export default async function ApprovedIdeaPage({ params }: { params: Promise<{ s
 
   return (
     <div className="max-w-4xl mx-auto py-12 md:py-24 px-4 md:px-8 space-y-8">
-      <Link 
-        href="/docs/approved-ideas" 
+      <Link
+        href="/docs/approved-ideas"
         className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-sm font-medium"
       >
         <ArrowLeft size={16} /> Back to Approved Ideas
@@ -29,7 +27,7 @@ export default async function ApprovedIdeaPage({ params }: { params: Promise<{ s
             <CheckCircle size={14} className="text-emerald-400" />
             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Approved</span>
         </div>
-        
+
         <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-none italic uppercase">
           {doc.title}
         </h1>

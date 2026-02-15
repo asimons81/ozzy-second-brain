@@ -33,11 +33,11 @@ function revalidateNotePaths(category: string, slug: string) {
 }
 
 export async function createNote(input: CreateNoteInput) {
-  const result = createNoteOnDisk(input);
+  const result = await createNoteOnDisk(input);
 
   if (result.success) {
     try {
-      rebuildGraphIndex();
+      await rebuildGraphIndex();
     } catch {
       // Graph index is runtime cache; note write already succeeded.
     }
@@ -49,11 +49,11 @@ export async function createNote(input: CreateNoteInput) {
 }
 
 export async function updateNote(input: UpdateNoteInput) {
-  const result = updateNoteOnDisk(input);
+  const result = await updateNoteOnDisk(input);
 
   if (result.success) {
     try {
-      rebuildGraphIndex();
+      await rebuildGraphIndex();
     } catch {
       // Graph index is runtime cache; note write already succeeded.
     }

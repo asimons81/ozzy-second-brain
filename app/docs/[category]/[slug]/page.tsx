@@ -1,4 +1,4 @@
-import { getDoc, getCategories, getDocsByCategory, getReadingStats } from '@/lib/brain';
+import { getDoc, getReadingStats } from '@/lib/brain';
 import { getCategoryByKey } from '@/lib/categories';
 import { getDocPanelData } from '@/lib/graph';
 import { getStorageRuntimeInfo } from '@/lib/storage';
@@ -14,20 +14,7 @@ import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 import { Bot, Clock, User } from 'lucide-react';
 
-
-export async function generateStaticParams() {
-  const categories = getCategories();
-  const params: { category: string; slug: string }[] = [];
-
-  for (const category of categories) {
-    const docs = getDocsByCategory(category);
-    for (const doc of docs) {
-      params.push({ category, slug: doc.slug });
-    }
-  }
-
-  return params;
-}
+export const dynamic = 'force-dynamic';
 
 function noteHref(category: string, slug: string) {
   return `/docs/${encodeURIComponent(category)}/${encodeURIComponent(slug)}`;
@@ -91,23 +78,22 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
     notFound();
   }
 
-  const doc = getDoc(category, decodedSlug);
-  const storage = getStorageRuntimeInfo();
+  const doc = await getDoc(category, decodedSlug);
+  const storage = await getStorageRuntimeInfo();
 
   if (!doc) {
     notFound();
   }
 
-  const panel = getDocPanelData(category, decodedSlug);
+  const panel = await getDocPanelData(category, decodedSlug);
   const renderedMarkdown = rewriteWikiLinksToMarkdownLinks(doc.content);
-  const pinned = isPinned(category, decodedSlug);
+  const pinned = await isPinned(category, decodedSlug);
   const stats = getReadingStats(doc.content);
 
   return (
     <div className="max-w-7xl mx-auto py-8 md:py-24 px-4 md:px-8">
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 md:gap-8">
         <div>
-          {/* Breadcrumbs */}
           <div className="mb-6">
             <Breadcrumbs
               items={[
@@ -123,7 +109,6 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
               <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 px-3 py-1 rounded-lg">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{knownCategory.title}</span>
               </div>
-              {/* Author badge */}
               {doc.author && (
                 <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest ${
                   doc.author === 'agent'
@@ -134,7 +119,6 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
                   {doc.author === 'agent' ? 'Ozzy' : 'You'}
                 </div>
               )}
-              {/* Review status badge */}
               {doc.review_status === 'pending' && (
                 <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-[10px] font-black uppercase tracking-widest text-yellow-300">
                   Awaiting review
@@ -198,13 +182,12 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
                   content={doc.content}
                   storageWarning={storage.warningBanner}
                   writesAllowed={storage.writesAllowed}
-                  readOnlyMessage="read-only deployment"
+                  readOnlyMessage="Editing is locked. Add your Admin token to enable create/edit/delete."
                 />
               </div>
             </div>
           </header>
 
-          {/* Agent Review Panel */}
           {doc.ai_review && (
             <div className="mb-8 glass rounded-2xl border-brand/20 bg-brand/5 p-5 md:p-6 space-y-2">
               <div className="flex items-center gap-2">

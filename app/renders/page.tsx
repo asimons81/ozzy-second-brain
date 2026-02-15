@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getDocsByCategory } from '@/lib/brain';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 function badge(type?: string) {
   const t = (type ?? 'trend').toLowerCase();
@@ -10,8 +10,8 @@ function badge(type?: string) {
   return 'bg-brand/10 text-brand border-brand/20';
 }
 
-export default function RendersPage() {
-  const renders = getDocsByCategory('renders');
+export default async function RendersPage() {
+  const renders = await getDocsByCategory('renders');
 
   return (
     <div className="max-w-6xl mx-auto py-10 md:py-20 px-4 md:px-12 space-y-10">

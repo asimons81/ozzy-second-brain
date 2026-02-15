@@ -1,19 +1,16 @@
 import Link from 'next/link';
-import { getDoc, getDocsByCategory } from '@/lib/brain';
+import { getDoc } from '@/lib/brain';
 import { notFound } from 'next/navigation';
 import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 
-export async function generateStaticParams() {
-  const docs = getDocsByCategory('renders');
-  return docs.map((d) => ({ slug: d.slug }));
-}
+export const dynamic = 'force-dynamic';
 
 export default async function RenderDetail({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const decoded = decodeURIComponent(slug);
-  const doc = getDoc('renders', decoded);
+  const doc = await getDoc('renders', decoded);
   if (!doc) notFound();
 
   return (

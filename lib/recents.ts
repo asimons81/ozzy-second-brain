@@ -2,10 +2,11 @@ import { getStorageAdapter, readRecents as readFromStorage, type RecentsEntry } 
 
 export type RecentEntry = RecentsEntry;
 
-export function readRecents(limit = 50): RecentEntry[] {
+export async function readRecents(limit = 50): Promise<RecentEntry[]> {
   return readFromStorage(limit);
 }
 
-export function upsertRecent(entry: RecentEntry) {
-  getStorageAdapter().updateRecents(entry);
+export async function upsertRecent(entry: RecentEntry) {
+  const adapter = await getStorageAdapter();
+  await adapter.updateRecents(entry);
 }

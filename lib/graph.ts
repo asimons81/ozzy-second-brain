@@ -43,9 +43,12 @@ type DocResolver = {
   byTitle: Map<string, Doc[]>;
 };
 
-function graphFilePath() {
-  const baseDir = getStorageRuntimeInfo().dataDir;
-  return path.join(baseDir, '.index', 'graph.json');
+let inMemoryGraph: GraphIndex | null = null;
+
+async function graphFilePath() {
+  const info = await getStorageRuntimeInfo();
+  if (!info.dataDir.startsWith('/')) return null;
+  return path.join(info.dataDir, '.index', 'graph.json');
 }
 
 function emptyGraph(): GraphIndex {
@@ -129,9 +132,11 @@ function isGraphNode(value: unknown): value is GraphNode {
   );
 }
 
-function readGraphUnsafe() {
-  const filePath = graphFilePath();
-  if (!fs.existsSync(filePath)) return null;
+async function readGraphUnsafe() {
+  if (inMemoryGraph) return inMemoryGraph;
+
+  const filePath = await graphFilePath();
+  if (!filePath || !fs.existsSync(filePath)) return null;
 
   try {
     const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as Partial<GraphIndex>;
@@ -170,24 +175,28 @@ function readGraphUnsafe() {
       }
     }
 
+    inMemoryGraph = safe;
     return safe;
   } catch {
     return null;
   }
 }
 
-function writeGraphIndex(graph: GraphIndex) {
-  const filePath = graphFilePath();
+async function writeGraphIndex(graph: GraphIndex) {
+  inMemoryGraph = graph;
+  const filePath = await graphFilePath();
+  if (!filePath) return;
+
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(graph, null, 2), 'utf-8');
 }
 
-export function readGraphIndex() {
-  return readGraphUnsafe() ?? emptyGraph();
+export async function readGraphIndex() {
+  return (await readGraphUnsafe()) ?? emptyGraph();
 }
 
-export function rebuildGraphIndex() {
-  const docs = getAllDocs();
+export async function rebuildGraphIndex() {
+  const docs = await getAllDocs();
   const resolver = buildResolver(docs);
   const graph = emptyGraph();
 
@@ -226,13 +235,13 @@ export function rebuildGraphIndex() {
     }
   }
 
-  writeGraphIndex(graph);
+  await writeGraphIndex(graph);
   return graph;
 }
 
-export function getGraphIndex(options?: { rebuildIfMissing?: boolean }) {
+export async function getGraphIndex(options?: { rebuildIfMissing?: boolean }) {
   const rebuildIfMissing = options?.rebuildIfMissing ?? true;
-  const existing = readGraphUnsafe();
+  const existing = await readGraphUnsafe();
   if (existing) return existing;
   if (!rebuildIfMissing) return emptyGraph();
   return rebuildGraphIndex();
@@ -250,8 +259,8 @@ function toPreview(doc: Doc): GraphDocPreview {
   };
 }
 
-function docsById() {
-  const docs = getAllDocs();
+async function docsById() {
+  const docs = await getAllDocs();
   const byId = new Map<string, Doc>();
   for (const doc of docs) {
     byId.set(toCanonicalDocId(doc.category, doc.slug), doc);
@@ -259,16 +268,16 @@ function docsById() {
   return { docs, byId };
 }
 
-export function resolveWikiSlugToDoc(slug: string) {
-  const docs = getAllDocs();
+export async function resolveWikiSlugToDoc(slug: string) {
+  const docs = await getAllDocs();
   const resolver = buildResolver(docs);
   return resolveWikiTargetToDoc(slug, resolver);
 }
 
-export function getDocPanelData(category: string, slug: string): GraphDocPanel {
+export async function getDocPanelData(category: string, slug: string): Promise<GraphDocPanel> {
   const id = toCanonicalDocId(category, slug);
-  const graph = getGraphIndex({ rebuildIfMissing: true });
-  const { docs, byId } = docsById();
+  const graph = await getGraphIndex({ rebuildIfMissing: true });
+  const { docs, byId } = await docsById();
   const current = byId.get(id);
 
   if (!current) {

@@ -12,13 +12,16 @@ export type PinnedNote = {
   href: string;
 };
 
-function pinsPath() {
-  const { dataDir } = getStorageRuntimeInfo();
+async function pinsPath() {
+  const { dataDir } = await getStorageRuntimeInfo();
+  if (!dataDir.startsWith('/')) {
+    return path.join(process.cwd(), '.data', 'pins.json');
+  }
   return path.join(dataDir, '.index', 'pins.json');
 }
 
-export function readPins(): PinnedNote[] {
-  const filePath = pinsPath();
+export async function readPins(): Promise<PinnedNote[]> {
+  const filePath = await pinsPath();
   if (!fs.existsSync(filePath)) return [];
 
   try {
@@ -40,15 +43,15 @@ export function readPins(): PinnedNote[] {
   }
 }
 
-function writePins(pins: PinnedNote[]) {
-  const filePath = pinsPath();
+async function writePins(pins: PinnedNote[]) {
+  const filePath = await pinsPath();
   const dir = path.dirname(filePath);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(pins, null, 2), 'utf-8');
 }
 
-export function addPin(category: string, slug: string, title: string) {
-  const pins = readPins();
+export async function addPin(category: string, slug: string, title: string) {
+  const pins = await readPins();
   const exists = pins.some((p) => p.category === category && p.slug === slug);
   if (exists) return;
 
@@ -60,15 +63,15 @@ export function addPin(category: string, slug: string, title: string) {
     href: `/docs/${encodeURIComponent(category)}/${encodeURIComponent(slug)}`,
   });
 
-  writePins(pins);
+  await writePins(pins);
 }
 
-export function removePin(category: string, slug: string) {
-  const pins = readPins();
+export async function removePin(category: string, slug: string) {
+  const pins = await readPins();
   const filtered = pins.filter((p) => !(p.category === category && p.slug === slug));
-  writePins(filtered);
+  await writePins(filtered);
 }
 
-export function isPinned(category: string, slug: string): boolean {
-  return readPins().some((p) => p.category === category && p.slug === slug);
+export async function isPinned(category: string, slug: string): Promise<boolean> {
+  return (await readPins()).some((p) => p.category === category && p.slug === slug);
 }

@@ -44,6 +44,13 @@ type ResolvedStorage = {
 let resolvedStoragePromise: Promise<ResolvedStorage> | null = null;
 const DEBUG_ENABLED = process.env.SECOND_BRAIN_DEBUG === '1';
 
+function isBuildPhase() {
+  const phase = process.env.NEXT_PHASE ?? "";
+  return phase === "phase-production-build" || phase === "phase-production-export";
+}
+
+
+
 type AssetsBinding = {
   fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
 };
@@ -335,33 +342,41 @@ async function resolveCloudflareAssetsBinding() {
 async function resolveStorage(): Promise<ResolvedStorage> {
   const localDataDir = resolveLocalDataDir();
 
-  const cf = await getCloudflareContextSafe();
-  if (!cf) {
+  // During `next build`, never touch Cloudflare bindings (D1/ASSETS) to avoid missing-migration failures.
+  const phase = process.env.NEXT_PHASE || '';
+  const inBuild = phase === 'phase-production-build' || phase.includes('build');
+  if (inBuild) {
     const resolved: ResolvedStorage = {
-      adapter: new LocalFsStorage(localDataDir, false),
+      adapter: new LocalFsStorage(localDataDir, true),
       info: {
-        mode: 'local',
+        mode: "local",
         dataDir: localDataDir,
         isEphemeral: false,
-        writesAllowed: true,
-        warningBanner: null,
+        writesAllowed: false,
+        warningBanner: "read-only deployment",
       },
     };
-    debugLog('runtime selected', {
-      mode: resolved.info.mode,
-      dataDir: resolved.info.dataDir,
-      writesAllowed: resolved.info.writesAllowed,
-    });
+    debugLog("runtime selected", { mode: resolved.info.mode, dataDir: resolved.info.dataDir, writesAllowed: resolved.info.writesAllowed, phase });
     return resolved;
   }
 
-  const assets = await resolveCloudflareAssetsBinding();
+  let context: any = null;
+  try {
+    context = await getCloudflareContext({ async: true });
+  } catch {
+    context = null;
+  }
 
-  if (cf.env.SECOND_BRAIN_DB) {
-    const fallback = assets ? new CloudflareAssetsStorage(assets) : undefined;
-    debugLog("runtime selected", { mode: "d1" });
-    return {
-      adapter: new D1Storage(cf.env.SECOND_BRAIN_DB, fallback),
+  const hasD1 = Boolean(context?.env?.SECOND_BRAIN_DB);
+  const hasAssets = Boolean(context?.env?.ASSETS);
+
+  // Cloudflare runtime with D1 (persistent writes)
+  if (hasD1) {
+    const resolved: ResolvedStorage = {
+      adapter: new D1Storage(
+        context.env.SECOND_BRAIN_DB,
+        hasAssets ? new CloudflareAssetsStorage(context.env.ASSETS) : undefined
+      ),
       info: {
         mode: "d1",
         dataDir: "D1",
@@ -370,42 +385,38 @@ async function resolveStorage(): Promise<ResolvedStorage> {
         warningBanner: null,
       },
     };
-  }
-  if (assets) {
-    const resolved: ResolvedStorage = {
-      adapter: new CloudflareAssetsStorage(assets),
-      info: {
-        mode: 'asset-readonly',
-        dataDir: '/content (ASSETS)',
-        isEphemeral: false,
-        writesAllowed: false,
-        warningBanner: 'read-only deployment',
-      },
-    };
-    debugLog('runtime selected', {
-      mode: resolved.info.mode,
-      dataDir: resolved.info.dataDir,
-      writesAllowed: resolved.info.writesAllowed,
-    });
+    debugLog("runtime selected", { mode: resolved.info.mode, dataDir: resolved.info.dataDir, writesAllowed: resolved.info.writesAllowed });
     return resolved;
   }
 
+  // Cloudflare runtime with only ASSETS (read-only)
+  if (hasAssets) {
+    const resolved: ResolvedStorage = {
+      adapter: new CloudflareAssetsStorage(context.env.ASSETS),
+      info: {
+        mode: "asset-readonly",
+        dataDir: "/content (ASSETS)",
+        isEphemeral: false,
+        writesAllowed: false,
+        warningBanner: "read-only deployment",
+      },
+    };
+    debugLog("runtime selected", { mode: resolved.info.mode, dataDir: resolved.info.dataDir, writesAllowed: resolved.info.writesAllowed });
+    return resolved;
+  }
+
+  // Local dev / non-Cloudflare runtime
   const resolved: ResolvedStorage = {
-    adapter: new MissingAssetsStorage(),
+    adapter: new LocalFsStorage(localDataDir, false),
     info: {
-      mode: 'asset-readonly',
-      dataDir: '/content (ASSETS missing)',
+      mode: "local",
+      dataDir: localDataDir,
       isEphemeral: false,
-      writesAllowed: false,
-      warningBanner: 'read-only deployment',
+      writesAllowed: true,
+      warningBanner: null,
     },
   };
-  debugLog('runtime selected', {
-    mode: resolved.info.mode,
-    dataDir: resolved.info.dataDir,
-    writesAllowed: resolved.info.writesAllowed,
-    fallback: 'ASSETS binding missing',
-  });
+  debugLog("runtime selected", { mode: resolved.info.mode, dataDir: resolved.info.dataDir, writesAllowed: resolved.info.writesAllowed });
   return resolved;
 }
 
