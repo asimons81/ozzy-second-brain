@@ -2,6 +2,7 @@ import { getDoc } from '@/lib/brain';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, Clock, ExternalLink } from 'lucide-react';
+import { ApprovedIdeaActions } from '@/components/ApprovedIdeaActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,6 +50,8 @@ export default async function ApprovedIdeaPage({ params }: { params: Promise<{ s
           )}
         </div>
       </header>
+
+      <ApprovedIdeaActions slug={doc.slug} />
 
       <article className="prose prose-invert prose-zinc max-w-none">
         <div dangerouslySetInnerHTML={{ __html: doc.content || '' }} />
