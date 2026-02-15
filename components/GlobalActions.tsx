@@ -148,11 +148,18 @@ export function GlobalActions({
       <div className="flex items-center gap-2">
         {auth.authenticated ? (
           <>
-            <span className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-brand/40 bg-brand/10 text-brand transition-all">
-              <KeyRound size={16} className="text-brand" />
-              <span className="text-xs font-black uppercase tracking-widest">
-                Admin On {auth.email ? `(${auth.email})` : ''}
-              </span>
+            <span
+              className="inline-flex max-w-[11rem] items-center gap-1.5 rounded-xl border border-brand/40 bg-brand/10 px-2.5 py-1.5 text-brand transition-all md:max-w-[18rem]"
+              title={auth.email}
+            >
+              <KeyRound size={14} className="text-brand" />
+              <span className="text-[11px] font-black uppercase tracking-widest md:hidden">Admin On</span>
+              <span className="hidden text-[11px] font-black uppercase tracking-widest md:inline">Admin On</span>
+              {auth.email ? (
+                <span className="hidden min-w-0 max-w-[10rem] truncate text-[11px] font-black md:inline">
+                  ({auth.email})
+                </span>
+              ) : null}
             </span>
             <button
               onClick={() => void logout()}
