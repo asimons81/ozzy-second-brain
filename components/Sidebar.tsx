@@ -16,7 +16,6 @@ import {
   TrendingUp,
   Lightbulb,
   Copy,
-  Wrench,
   Hammer,
 } from 'lucide-react';
 import { categories } from '@/lib/categories';
@@ -29,7 +28,6 @@ const iconMap = {
   TrendingUp,
   Lightbulb,
   Copy,
-  Wrench,
   Hammer,
 } as const;
 
@@ -40,7 +38,6 @@ export function Sidebar() {
   const navItems = [
     { label: 'Now', href: '/', icon: Activity },
     { label: 'Activity', href: '/activity', icon: BarChart3 },
-    { label: 'Queue', href: '/queue', icon: Wrench },
     { label: 'Calendar', href: '/calendar', icon: Calendar },
     { label: 'Docs', href: '/docs', icon: Book },
     { label: 'Ideas', href: '/ideas', icon: Zap },

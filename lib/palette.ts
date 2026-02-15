@@ -25,15 +25,6 @@ function navItems(): PaletteItem[] {
       keywords: 'timeline feed activity',
     },
     {
-      id: 'nav-queue',
-      title: 'Queue',
-      subtitle: 'Sid ticket pipeline',
-      href: '/queue',
-      group: 'Navigate',
-      kind: 'link',
-      keywords: 'sid queue tickets pipeline',
-    },
-    {
       id: 'nav-renders',
       title: 'Renders',
       subtitle: 'Output library',

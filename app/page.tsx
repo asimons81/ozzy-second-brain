@@ -5,7 +5,6 @@ import {
   ExternalLink,
   Flame,
   Layers,
-  ListTodo,
   MessageSquare,
   Server,
   Sparkles,
@@ -15,7 +14,7 @@ import {
 import { getActivitySnapshot } from '@/lib/activity';
 import { getActivityHeatmapData } from '@/lib/activity';
 import { readRecents, getStorageRuntimeInfo } from '@/lib/storage';
-import { readApprovedIdeas, readSidTickets } from '@/lib/pipeline';
+import { readApprovedIdeas } from '@/lib/pipeline';
 import { getSystemLinks } from '@/lib/systems';
 import { readPins } from '@/lib/pins';
 import {
@@ -40,16 +39,12 @@ function fmt(iso: string) {
 export default async function NowPage() {
   const storage = await getStorageRuntimeInfo();
   const recents = await readRecents(10);
-  const tickets = await readSidTickets();
-  const queueTop = tickets.slice(0, 10);
-  const openTickets = tickets.filter((ticket) => ticket.derivedStatus === 'pending');
   const approvedPending = (await readApprovedIdeas()).filter((idea) => !idea.outputExists);
   const activity = await getActivitySnapshot(200);
 
   const lastCandidates = [
     ...(activity.lastActivityIso ? [activity.lastActivityIso] : []),
     ...recents.map((item) => item.modifiedAt),
-    ...tickets.map((item) => item.createdAt),
     ...approvedPending.map((item) => item.modifiedAt),
   ];
   const lastActivity = lastCandidates.sort((a, b) => ts(b) - ts(a))[0] ?? null;
@@ -166,15 +161,15 @@ export default async function NowPage() {
               <Layers size={16} className="text-brand" />
               <h2 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-300">Active</h2>
             </div>
-            <Link href="/queue" className="text-[11px] font-mono text-zinc-500 hover:text-brand">
+            <Link href="/ideas" className="text-[11px] font-mono text-zinc-500 hover:text-brand">
               See all
             </Link>
           </div>
 
           <div className="space-y-2">
-            {approvedPending.length === 0 && openTickets.length === 0 && (
+            {approvedPending.length === 0 && (
               <div className="rounded-2xl border border-white/5 bg-white/5 px-3 py-3 text-sm text-zinc-500">
-                No active approvals or open Sid tickets.
+                No active approvals.
               </div>
             )}
 
@@ -190,19 +185,6 @@ export default async function NowPage() {
               </div>
             ))}
 
-            {openTickets.slice(0, 5).map((ticket) => (
-              <div key={`ticket-${ticket.key}`} className="rounded-2xl border border-white/5 bg-white/5 px-3 py-3 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-sm font-bold text-zinc-100 truncate">{ticket.sourceIdeaSlug ?? ticket.id}</div>
-                  <div className="text-[11px] font-mono text-zinc-600 mt-1">
-                    {ticket.isStale ? 'Stale pending ticket' : 'Open Sid ticket'}
-                  </div>
-                </div>
-                <Link href={ticket.href} className="text-xs font-black uppercase tracking-widest text-brand hover:opacity-80">
-                  Queue
-                </Link>
-              </div>
-            ))}
           </div>
         </div>
 
@@ -291,51 +273,8 @@ export default async function NowPage() {
         </div>
       </section>
 
-      {/* Queue + Systems */}
-      <section className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-6">
-        <div className="glass rounded-2xl border-white/5 p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ListTodo size={16} className="text-brand" />
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-300">Queue</h2>
-            </div>
-            <Link href="/queue" className="text-[11px] font-mono text-zinc-500 hover:text-brand">
-              See all
-            </Link>
-          </div>
-          <div className="space-y-2">
-            {queueTop.length === 0 && (
-              <div className="rounded-2xl border border-white/5 bg-white/5 px-3 py-3 text-sm text-zinc-500">
-                Sid queue is empty.
-              </div>
-            )}
-            {queueTop.map((ticket) => (
-              <Link
-                key={ticket.key}
-                href={ticket.href}
-                className="block rounded-2xl border border-white/5 bg-white/5 px-4 py-3 hover:bg-white/10 transition-all"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-sm font-bold text-zinc-100 truncate">{ticket.sourceIdeaSlug ?? ticket.id}</div>
-                    <div className="text-[11px] font-mono text-zinc-600 mt-1">{fmt(ticket.createdAt)}</div>
-                  </div>
-                  <span
-                    className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border ${ticket.derivedStatus === 'produced'
-                      ? 'border-brand/30 bg-brand/10 text-brand'
-                      : ticket.isStale
-                        ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-200'
-                        : 'border-zinc-500/30 bg-zinc-500/10 text-zinc-300'
-                      }`}
-                  >
-                    {ticket.derivedStatus === 'produced' ? 'Produced' : ticket.isStale ? 'Stale' : 'Pending'}
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
+      {/* Systems */}
+      <section className="grid grid-cols-1 gap-6">
         <div className="glass rounded-2xl border-white/5 p-5 space-y-4">
           <div className="flex items-center gap-2">
             <Server size={16} className="text-brand" />
