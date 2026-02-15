@@ -10,7 +10,14 @@ Next.js App Router app deployed to Cloudflare Workers via OpenNext.
   - If D1 binding is missing: falls back to bundled `public/content` in read-only mode
 - In D1 mode, bundled `public/content` is used once as a seed source when D1 is empty.
 
-Writes in production happen through `/api/notes/*` and require `Authorization: Bearer <SECOND_BRAIN_ADMIN_TOKEN>`.
+Writes in production happen through `/api/notes/*` and now use Google OAuth + server-side sessions. Legacy `Authorization: Bearer <SECOND_BRAIN_ADMIN_TOKEN>` is still accepted temporarily for backward compatibility.
+
+## Auth Environment Variables
+
+- `GOOGLE_CLIENT_ID`: Google OAuth web client ID.
+- `GOOGLE_CLIENT_SECRET`: Google OAuth client secret (server-side only).
+- `ADMIN_GOOGLE_ALLOWLIST`: Comma-separated allowlist of admin Google emails (for example `you@example.com,ops@example.com`).
+- `SESSION_TTL_HOURS`: Session lifetime in hours for `ozzy_admin_session` cookie (default: `12`).
 
 ## D1 Setup
 
@@ -38,7 +45,15 @@ npx wrangler d1 migrations apply ozzy-second-brain-db --local
 npx wrangler d1 migrations apply ozzy-second-brain-db --remote
 ```
 
-5. Set the admin token secret (required for PUT/DELETE):
+5. Set Google OAuth/admin auth secrets:
+
+```bash
+npx wrangler secret put GOOGLE_CLIENT_ID
+npx wrangler secret put GOOGLE_CLIENT_SECRET
+npx wrangler secret put ADMIN_GOOGLE_ALLOWLIST
+```
+
+6. Optional backward-compatible legacy bearer token:
 
 ```bash
 npx wrangler secret put SECOND_BRAIN_ADMIN_TOKEN
@@ -52,13 +67,14 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-For local API write auth, set:
+For local API write auth/session configuration, set:
 
 ```bash
-export SECOND_BRAIN_ADMIN_TOKEN='your-token'
+export GOOGLE_CLIENT_ID='your-google-client-id'
+export GOOGLE_CLIENT_SECRET='your-google-client-secret'
+export ADMIN_GOOGLE_ALLOWLIST='you@example.com,ops@example.com'
+export SESSION_TTL_HOURS='12'
 ```
-
-In the UI, click `Admin` in the top bar and paste the same token.
 
 ## Deploy
 

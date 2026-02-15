@@ -182,7 +182,7 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
                   content={doc.content}
                   storageWarning={storage.warningBanner}
                   writesAllowed={storage.writesAllowed}
-                  readOnlyMessage="Editing is locked. Add your Admin token to enable create/edit/delete."
+                  readOnlyMessage="Editing is locked. Sign in with Google to enable create/edit/delete."
                 />
               </div>
             </div>
