@@ -1,80 +1,188 @@
 'use server';
 
-import fs from 'fs';
-import path from 'path';
 import { revalidatePath } from 'next/cache';
+import matter from 'gray-matter';
+import { getStorageAdapter } from '@/lib/storage';
+import { recordIdeaDecision } from '@/lib/decisions';
 
-const BRAIN_DIR = path.join(process.cwd(), 'content');
-const IDEAS_DIR = path.join(BRAIN_DIR, 'ideas');
-const ARCHIVE_DIR = path.join(process.cwd(), '.archive', 'rejected-ideas');
+const PARTIAL_SUCCESS_ERROR = 'Decision logging failed after note update/move/delete.';
 
-if (!fs.existsSync(ARCHIVE_DIR)) {
-  fs.mkdirSync(ARCHIVE_DIR, { recursive: true });
+type ActionResult = { success: true } | { success: false; error: string };
+
+function safeRevalidate(pathname: string) {
+  try {
+    revalidatePath(pathname);
+  } catch {
+    // Revalidation context is only present during Next request execution.
+  }
 }
 
-export async function approveIdea(slug: string) {
-  const sourcePath = path.join(IDEAS_DIR, `${slug}.md`);
-  const destDir = path.join(BRAIN_DIR, 'approved-ideas');
-  const sidQueueDir = path.join(process.cwd(), 'notes', 'sid-queue');
-  
-  if (!fs.existsSync(destDir)) {
-    fs.mkdirSync(destDir, { recursive: true });
-  }
-  if (!fs.existsSync(sidQueueDir)) {
-    fs.mkdirSync(sidQueueDir, { recursive: true });
+function revalidateIdeaPaths(slug: string) {
+  safeRevalidate('/');
+  safeRevalidate('/ideas');
+  safeRevalidate('/docs/ideas');
+  safeRevalidate('/docs/approved-ideas');
+  safeRevalidate(`/docs/ideas/${encodeURIComponent(slug)}`);
+  safeRevalidate(`/docs/approved-ideas/${encodeURIComponent(slug)}`);
+  safeRevalidate('/activity');
+}
+
+function normalizeTags(raw: unknown) {
+  const source = Array.isArray(raw) ? raw : typeof raw === 'string' ? raw.split(',') : [];
+  const seen = new Set<string>();
+  const tags: string[] = [];
+
+  for (const item of source) {
+    if (typeof item !== 'string') continue;
+    const normalized = item.trim().toLowerCase();
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    tags.push(normalized);
   }
 
-  const destPath = path.join(destDir, `${slug}.md`);
-  
-  if (fs.existsSync(sourcePath)) {
-    const fileContent = fs.readFileSync(sourcePath, 'utf-8');
-    // We could parse frontmatter here if needed
-    
-    fs.renameSync(sourcePath, destPath);
-    
-    // Create Job Ticket for Sid
-    const ticketId = `job-${Date.now()}`;
-    const ticket = {
-      id: ticketId,
-      task: 'draft-content',
-      priority: 'high',
-      source_idea: slug,
-      status: 'pending',
-      assigned_to: 'sid',
-      created_at: new Date().toISOString(),
-      instructions: `Please review the approved idea "${slug}" and draft 3 high-signal X posts and 1 LinkedIn post based on it. Store the results in content/renders/${slug}-drafts.md`
+  return tags;
+}
+
+function withNeedsWorkTags(raw: unknown) {
+  const tags = normalizeTags(raw).filter((tag) => tag !== 'approved');
+  if (!tags.includes('needs-work')) {
+    tags.push('needs-work');
+  }
+  return tags;
+}
+
+function titleFromMarkdown(markdown: string, fallbackSlug: string) {
+  const parsed = matter(markdown);
+  const data = parsed.data as Record<string, unknown>;
+  if (typeof data.title === 'string' && data.title.trim()) {
+    return data.title.trim();
+  }
+  const h1 = parsed.content.match(/^#\s+(.+)$/m);
+  if (h1?.[1]) return h1[1].trim();
+  return fallbackSlug.replace(/-/g, ' ');
+}
+
+function normalizeSlug(slug: string) {
+  const normalized = slug.trim();
+  if (!normalized || normalized.includes('/') || normalized.includes('\\') || normalized.includes('..')) {
+    return null;
+  }
+  return normalized;
+}
+
+function decisionLoggingFailed() {
+  return { success: false as const, error: PARTIAL_SUCCESS_ERROR };
+}
+
+export async function approveIdea(slug: string): Promise<ActionResult> {
+  const normalizedSlug = normalizeSlug(slug);
+  if (!normalizedSlug) return { success: false, error: 'Invalid slug' };
+
+  try {
+    const storage = await getStorageAdapter();
+    const markdown = await storage.readNote('ideas', normalizedSlug);
+    const ideaTitle = titleFromMarkdown(markdown, normalizedSlug);
+
+    // Required ordering: move first, log decision second.
+    await storage.writeNote('approved-ideas', normalizedSlug, markdown);
+    await storage.deleteNote('ideas', normalizedSlug);
+
+    const decision = await recordIdeaDecision({
+      ideaSlug: normalizedSlug,
+      decision: 'approved',
+      ideaTitle,
+    });
+    if (!decision.ok) return decisionLoggingFailed();
+
+    revalidateIdeaPaths(normalizedSlug);
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to approve idea.';
+    return { success: false, error: message };
+  }
+}
+
+export async function rejectIdea(slug: string, reason: string): Promise<ActionResult> {
+  const normalizedSlug = normalizeSlug(slug);
+  if (!normalizedSlug) return { success: false, error: 'Invalid slug' };
+  const trimmedReason = reason.trim();
+  if (!trimmedReason) return { success: false, error: 'Reason is required.' };
+
+  try {
+    const storage = await getStorageAdapter();
+    const markdown = await storage.readNote('ideas', normalizedSlug);
+    const ideaTitle = titleFromMarkdown(markdown, normalizedSlug);
+
+    // Required ordering: delete first, log decision second.
+    await storage.deleteNote('ideas', normalizedSlug);
+
+    const decision = await recordIdeaDecision({
+      ideaSlug: normalizedSlug,
+      decision: 'rejected',
+      ideaTitle,
+      reason: trimmedReason,
+    });
+    if (!decision.ok) return decisionLoggingFailed();
+
+    revalidateIdeaPaths(normalizedSlug);
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to reject idea.';
+    return { success: false, error: message };
+  }
+}
+
+export async function needsWorkIdea(slug: string, feedback: string): Promise<ActionResult> {
+  const normalizedSlug = normalizeSlug(slug);
+  if (!normalizedSlug) return { success: false, error: 'Invalid slug' };
+  const trimmedFeedback = feedback.trim();
+  if (!trimmedFeedback) return { success: false, error: 'Feedback is required.' };
+
+  try {
+    const storage = await getStorageAdapter();
+    const markdown = await storage.readNote('ideas', normalizedSlug);
+    const parsed = matter(markdown);
+    const data = parsed.data as Record<string, unknown>;
+    const ideaTitle = titleFromMarkdown(markdown, normalizedSlug);
+
+    const nextData: Record<string, unknown> = {
+      ...data,
+      tags: withNeedsWorkTags(data.tags),
+      needs_work_feedback: trimmedFeedback,
+      needs_work_at: new Date().toISOString(),
     };
+    const updatedMarkdown = matter.stringify(parsed.content, nextData);
 
-    fs.writeFileSync(
-      path.join(sidQueueDir, `ticket-${ticketId}.json`),
-      JSON.stringify(ticket, null, 2)
-    );
-    
-    revalidatePath('/docs/ideas');
+    // Required ordering: rewrite first, log decision second.
+    await storage.writeNote('ideas', normalizedSlug, updatedMarkdown);
+
+    const decision = await recordIdeaDecision({
+      ideaSlug: normalizedSlug,
+      decision: 'needs-work',
+      ideaTitle,
+      feedback: trimmedFeedback,
+    });
+    if (!decision.ok) return decisionLoggingFailed();
+
+    revalidateIdeaPaths(normalizedSlug);
     return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to update idea.';
+    return { success: false, error: message };
   }
-  return { success: false, error: 'File not found' };
 }
 
-export async function rejectIdea(slug: string) {
-  const sourcePath = path.join(IDEAS_DIR, `${slug}.md`);
-  const destPath = path.join(ARCHIVE_DIR, `${slug}.md`);
+export async function deleteIdea(slug: string): Promise<ActionResult> {
+  const normalizedSlug = normalizeSlug(slug);
+  if (!normalizedSlug) return { success: false, error: 'Invalid slug' };
 
-  if (fs.existsSync(sourcePath)) {
-    fs.renameSync(sourcePath, destPath);
-    revalidatePath('/docs/ideas');
+  try {
+    const storage = await getStorageAdapter();
+    await storage.deleteNote('ideas', normalizedSlug);
+    revalidateIdeaPaths(normalizedSlug);
     return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to delete idea.';
+    return { success: false, error: message };
   }
-  return { success: false, error: 'File not found' };
-}
-
-export async function deleteIdea(slug: string) {
-  const filePath = path.join(IDEAS_DIR, `${slug}.md`);
-  
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
-    revalidatePath('/docs/ideas');
-    return { success: true };
-  }
-  return { success: false, error: 'File not found' };
 }
