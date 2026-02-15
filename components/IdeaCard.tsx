@@ -19,13 +19,15 @@ export function IdeaCard({ doc }: { doc: Doc }) {
 
   if (removed) return null;
 
-  const handleAction = async (action: () => Promise<ActionResult>) => {
+  const handleAction = async (action: () => Promise<ActionResult>, removeOnSuccess = true) => {
     setLoading(true);
     setError(null);
     try {
       const res = await action();
       if (res.success) {
-        setRemoved(true);
+        if (removeOnSuccess) {
+          setRemoved(true);
+        }
         return;
       }
       setError(res.error ?? 'Action failed.');
@@ -171,7 +173,7 @@ export function IdeaCard({ doc }: { doc: Doc }) {
                     const res = await needsWorkIdea(doc.slug, needsWorkFeedback);
                     if (res.success) setNeedsWorkOpen(false);
                     return res;
-                  })
+                  }, false)
                 }
                 className="px-4 py-2 rounded-xl bg-yellow-500/15 border border-yellow-500/30 text-sm font-bold text-yellow-200"
               >
