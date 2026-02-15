@@ -60,9 +60,9 @@ function docDate(doc: Doc): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-export function getStaleNotes(days = 30, limit = 5): StaleNote[] {
+export async function getStaleNotes(days = 30, limit = 5): Promise<StaleNote[]> {
   const now = new Date();
-  const docs = getAllDocs();
+  const docs = await getAllDocs();
   const stale: StaleNote[] = [];
 
   for (const doc of docs) {
@@ -85,8 +85,8 @@ export function getStaleNotes(days = 30, limit = 5): StaleNote[] {
     .slice(0, limit);
 }
 
-export function getWritingStreak(): WritingStreak {
-  const recents = readRecents(50);
+export async function getWritingStreak(): Promise<WritingStreak> {
+  const recents = await readRecents(50);
   if (recents.length === 0) return { current: 0, longest: 0, todayComplete: false };
 
   const dates = new Set<string>();
@@ -105,7 +105,6 @@ export function getWritingStreak(): WritingStreak {
   let streak = 0;
   const check = new Date();
 
-  // Start from today if we have activity, otherwise from yesterday
   if (!todayComplete) {
     check.setDate(check.getDate() - 1);
   }
@@ -115,9 +114,6 @@ export function getWritingStreak(): WritingStreak {
     if (dates.has(dateStr)) {
       streak++;
     } else {
-      if (i === 0 && !todayComplete) {
-        // Check if yesterday had activity
-      }
       if (current === 0) current = streak;
       longest = Math.max(longest, streak);
       streak = 0;
@@ -131,11 +127,11 @@ export function getWritingStreak(): WritingStreak {
   return { current, longest, todayComplete };
 }
 
-export function getPipelineBottlenecks(limit = 5): PipelineBottleneck[] {
+export async function getPipelineBottlenecks(limit = 5): Promise<PipelineBottleneck[]> {
   const bottlenecks: PipelineBottleneck[] = [];
   const now = new Date();
 
-  const approved = readApprovedIdeas().filter((idea) => !idea.outputExists);
+  const approved = (await readApprovedIdeas()).filter((idea) => !idea.outputExists);
   for (const idea of approved) {
     const age = daysBetween(now, new Date(idea.modifiedAt));
     bottlenecks.push({
@@ -146,7 +142,7 @@ export function getPipelineBottlenecks(limit = 5): PipelineBottleneck[] {
     });
   }
 
-  const tickets = readSidTickets().filter((t) => t.isStale);
+  const tickets = (await readSidTickets()).filter((t) => t.isStale);
   for (const ticket of tickets) {
     const age = daysBetween(now, new Date(ticket.createdAt));
     bottlenecks.push({
@@ -162,8 +158,8 @@ export function getPipelineBottlenecks(limit = 5): PipelineBottleneck[] {
     .slice(0, limit);
 }
 
-export function getCategoryDistribution(): CategoryCount[] {
-  const docs = getAllDocs();
+export async function getCategoryDistribution(): Promise<CategoryCount[]> {
+  const docs = await getAllDocs();
   const counts = new Map<string, number>();
   for (const doc of docs) {
     counts.set(doc.category, (counts.get(doc.category) ?? 0) + 1);
@@ -179,8 +175,8 @@ export function getCategoryDistribution(): CategoryCount[] {
     .sort((a, b) => b.count - a.count);
 }
 
-export function getTodayStats(): TodayStats {
-  const recents = readRecents(50);
+export async function getTodayStats(): Promise<TodayStats> {
+  const recents = await readRecents(50);
   const today = new Date().toISOString().split('T')[0];
   let created = 0;
   let edited = 0;
@@ -192,14 +188,13 @@ export function getTodayStats(): TodayStats {
     edited++;
   }
 
-  // Rough heuristic: if modifiedAt is very close to the note's date, it's a create
   created = Math.min(edited, 1);
 
   return { created, edited };
 }
 
-export function getNeedsReviewNotes(limit = 10): NeedsReviewNote[] {
-  const docs = getAllDocs();
+export async function getNeedsReviewNotes(limit = 10): Promise<NeedsReviewNote[]> {
+  const docs = await getAllDocs();
   const pending: NeedsReviewNote[] = [];
 
   for (const doc of docs) {

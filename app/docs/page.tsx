@@ -4,20 +4,22 @@ import { getCategoryByKey } from '@/lib/categories';
 
 export const dynamic = 'force-dynamic';
 
-export default function DocsLandingPage() {
+export default async function DocsLandingPage() {
   const categories = getCategories();
 
-  const model = categories.map((key) => {
-    const docs = getDocsByCategory(key);
-    const recent = docs.slice(0, 3);
-    return {
-      key,
-      title: getCategoryByKey(key)?.title ?? key,
-      count: docs.length,
-      recent,
-      href: `/docs/${key}`,
-    };
-  });
+  const model = await Promise.all(
+    categories.map(async (key) => {
+      const docs = await getDocsByCategory(key);
+      const recent = docs.slice(0, 3);
+      return {
+        key,
+        title: getCategoryByKey(key)?.title ?? key,
+        count: docs.length,
+        recent,
+        href: `/docs/${key}`,
+      };
+    })
+  );
 
   return (
     <div className="max-w-6xl mx-auto py-8 md:py-16 px-4 md:px-10 space-y-8">
@@ -61,4 +63,3 @@ export default function DocsLandingPage() {
     </div>
   );
 }
-

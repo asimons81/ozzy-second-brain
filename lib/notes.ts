@@ -10,6 +10,7 @@ export type CreateNoteInput = {
   body?: string;
   author?: 'user' | 'agent';
   requestReview?: boolean;
+  slug?: string;
 };
 
 export type UpdateNoteInput = {
@@ -18,6 +19,11 @@ export type UpdateNoteInput = {
   title: string;
   tags?: string;
   body: string;
+};
+
+export type DeleteNoteInput = {
+  category: string;
+  slug: string;
 };
 
 export type NoteWriteResult =
@@ -72,8 +78,9 @@ function noteRoute(category: string, slug: string) {
   return `/docs/${encodeURIComponent(category)}/${encodeURIComponent(slug)}`;
 }
 
-function upsertRecents(category: string, slug: string, title: string, modifiedAt: string) {
-  getStorageAdapter().updateRecents({
+async function upsertRecents(category: string, slug: string, title: string, modifiedAt: string) {
+  const storage = await getStorageAdapter();
+  await storage.updateRecents({
     key: `${category}/${slug}`,
     category,
     slug,
@@ -83,24 +90,30 @@ function upsertRecents(category: string, slug: string, title: string, modifiedAt
   });
 }
 
-export function createNoteOnDisk(input: CreateNoteInput): NoteWriteResult {
+function renderRuntimeError(message: string, dataDir: string) {
+  return `${message} Running in read-only mode (${dataDir}). Configure D1 for durable writes in Cloudflare.`;
+}
+
+export async function createNote(input: CreateNoteInput): Promise<NoteWriteResult> {
   const title = input.title.trim();
   if (!title) {
     return { success: false, error: 'Title is required.' };
   }
 
   try {
-    const storage = getStorageAdapter();
+    const storage = await getStorageAdapter();
     const category = assertCategory(input.category).key;
 
-    const baseSlug = sanitizeSlug(title);
+    const baseSlug = input.slug ? sanitizeSlug(input.slug) : sanitizeSlug(title);
     let slug = baseSlug;
     let counter = 2;
 
-    const existing = new Set(storage.listNotes(category));
-    while (existing.has(slug)) {
-      slug = `${baseSlug}-${counter}`;
-      counter += 1;
+    const existing = new Set(await storage.listNotes(category));
+    if (!input.slug) {
+      while (existing.has(slug)) {
+        slug = `${baseSlug}-${counter}`;
+        counter += 1;
+      }
     }
 
     const tags = parseTags(input.tags);
@@ -108,6 +121,7 @@ export function createNoteOnDisk(input: CreateNoteInput): NoteWriteResult {
     const frontmatter: Record<string, unknown> = {
       title,
       date,
+      modified: date,
       tags,
     };
     if (input.author) {
@@ -118,26 +132,21 @@ export function createNoteOnDisk(input: CreateNoteInput): NoteWriteResult {
     }
     const fileContent = matter.stringify(input.body?.trim() ?? '', frontmatter);
 
-    console.info('[notes] create attempt', { category, slug });
-    storage.writeNote(category, slug, fileContent);
-    upsertRecents(category, slug, title, date);
+    await storage.writeNote(category, slug, fileContent);
+    await upsertRecents(category, slug, title, date);
 
     return { success: true, href: noteRoute(category, slug), category, slug };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to create note.';
-    console.warn('[notes] create failed', { category: input.category, message });
-    const info = getStorageRuntimeInfo();
-    if (info.isEphemeral) {
-      return {
-        success: false,
-        error: `${message} Running in ephemeral mode (${info.dataDir}). Set SECOND_BRAIN_STORAGE=local and SECOND_BRAIN_DATA_DIR to enable durable saves.`,
-      };
+    const info = await getStorageRuntimeInfo();
+    if (!info.writesAllowed) {
+      return { success: false, error: renderRuntimeError(message, info.dataDir) };
     }
     return { success: false, error: message };
   }
 }
 
-export function updateNoteOnDisk(input: UpdateNoteInput): NoteWriteResult {
+export async function updateNote(input: UpdateNoteInput): Promise<NoteWriteResult> {
   const title = input.title.trim();
   if (!title) {
     return { success: false, error: 'Title is required.' };
@@ -149,9 +158,9 @@ export function updateNoteOnDisk(input: UpdateNoteInput): NoteWriteResult {
   }
 
   try {
-    const storage = getStorageAdapter();
+    const storage = await getStorageAdapter();
     const category = assertCategory(input.category).key;
-    const raw = storage.readNote(category, slug);
+    const raw = await storage.readNote(category, slug);
     const parsed = matter(raw);
     const now = new Date().toISOString();
 
@@ -163,21 +172,47 @@ export function updateNoteOnDisk(input: UpdateNoteInput): NoteWriteResult {
     };
 
     const nextContent = matter.stringify(input.body, nextData);
-    console.info('[notes] update attempt', { category, slug });
-    storage.writeNote(category, slug, nextContent);
-    upsertRecents(category, slug, title, now);
+    await storage.writeNote(category, slug, nextContent);
+    await upsertRecents(category, slug, title, now);
 
     return { success: true, href: noteRoute(category, slug), category, slug };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to save note.';
-    console.warn('[notes] update failed', { category: input.category, slug: input.slug, message });
-    const info = getStorageRuntimeInfo();
-    if (info.isEphemeral) {
-      return {
-        success: false,
-        error: `${message} Running in ephemeral mode (${info.dataDir}). Set SECOND_BRAIN_STORAGE=local and SECOND_BRAIN_DATA_DIR to enable durable saves.`,
-      };
+    const info = await getStorageRuntimeInfo();
+    if (!info.writesAllowed) {
+      return { success: false, error: renderRuntimeError(message, info.dataDir) };
     }
     return { success: false, error: message };
   }
 }
+
+export async function deleteNote(input: DeleteNoteInput): Promise<NoteWriteResult> {
+  const slug = assertSafeExistingSlug(input.slug);
+  if (!slug) {
+    return { success: false, error: 'Invalid note slug.' };
+  }
+
+  try {
+    const storage = await getStorageAdapter();
+    const category = assertCategory(input.category).key;
+    await storage.deleteNote(category, slug);
+
+    return { success: true, href: `/docs/${encodeURIComponent(category)}`, category, slug };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to delete note.';
+    const info = await getStorageRuntimeInfo();
+    if (!info.writesAllowed) {
+      return { success: false, error: renderRuntimeError(message, info.dataDir) };
+    }
+    return { success: false, error: message };
+  }
+}
+
+export function toSafeSlug(value: string) {
+  return sanitizeSlug(value);
+}
+
+// Backward-compat exports for legacy imports.
+export const createNoteOnDisk = createNote;
+export const updateNoteOnDisk = updateNote;
+export const deleteNoteOnDisk = deleteNote;

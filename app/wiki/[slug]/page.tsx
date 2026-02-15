@@ -2,12 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { categories } from '@/lib/categories';
 import { resolveWikiSlugToDoc } from '@/lib/graph';
-import { getAllDocs } from '@/lib/brain';
 
-
-export async function generateStaticParams() {
-  return getAllDocs().map((doc) => ({ slug: doc.slug }));
-}
+export const dynamic = 'force-dynamic';
 
 function toTitleFromSlug(slug: string) {
   return slug
@@ -27,7 +23,7 @@ function defaultCaptureCategory() {
 export default async function WikiResolverPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
-  const resolved = resolveWikiSlugToDoc(decodedSlug);
+  const resolved = await resolveWikiSlugToDoc(decodedSlug);
 
   if (resolved) {
     redirect(`/docs/${encodeURIComponent(resolved.category)}/${encodeURIComponent(resolved.slug)}`);

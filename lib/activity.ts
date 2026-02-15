@@ -39,63 +39,66 @@ function safeMarkdownTitle(raw: string, slug: string) {
   return slug.replace(/-/g, ' ');
 }
 
-function readApprovedIdeaEvents(): ActivityEvent[] {
-  const dataDir = getStorageRuntimeInfo().dataDir;
+async function readApprovedIdeaEvents(): Promise<ActivityEvent[]> {
+  const dataDir = (await getStorageRuntimeInfo()).dataDir;
   const approvedDir = path.join(dataDir, 'approved-ideas');
   if (!fs.existsSync(approvedDir)) return [];
 
   const files = fs.readdirSync(approvedDir).filter((name) => name.endsWith('.md'));
   const events = files.map((fileName): ActivityEvent | null => {
-      const slug = fileName.replace(/\.md$/i, '');
-      const filePath = path.join(approvedDir, fileName);
+    const slug = fileName.replace(/\.md$/i, '');
+    const filePath = path.join(approvedDir, fileName);
 
-      try {
-        const raw = fs.readFileSync(filePath, 'utf-8');
-        const title = safeMarkdownTitle(raw, slug);
-        const mtimeIso = new Date(fs.statSync(filePath).mtimeMs).toISOString();
+    try {
+      const raw = fs.readFileSync(filePath, 'utf-8');
+      const title = safeMarkdownTitle(raw, slug);
+      const mtimeIso = new Date(fs.statSync(filePath).mtimeMs).toISOString();
 
-        return {
-          id: `approved:${slug}`,
-          type: 'idea_approved',
-          title: `Idea approved: ${title}`,
-          timestampIso: mtimeIso,
-          href: `/docs/ideas/${encodeURIComponent(slug)}`,
-          meta: { slug },
-        } satisfies ActivityEvent;
-      } catch {
-        return null;
-      }
-    });
+      return {
+        id: `approved:${slug}`,
+        type: 'idea_approved',
+        title: `Idea approved: ${title}`,
+        timestampIso: mtimeIso,
+        href: `/docs/ideas/${encodeURIComponent(slug)}`,
+        meta: { slug },
+      } satisfies ActivityEvent;
+    } catch {
+      return null;
+    }
+  });
 
   return events.filter((event): event is ActivityEvent => event !== null);
 }
 
-function recentsEvents(): ActivityEvent[] {
-  return readRecents(100).map((entry) => {
-    const doc = getDoc(entry.category, entry.slug);
-    const created = safeIso(doc?.date);
-    const modified = safeIso(doc?.modified) ?? entry.modifiedAt;
-    const eventType =
-      created && modified && new Date(modified).getTime() - new Date(created).getTime() < 1_000
-        ? 'note_created'
-        : 'note_updated';
+async function recentsEvents(): Promise<ActivityEvent[]> {
+  const recents = await readRecents(100);
+  return Promise.all(
+    recents.map(async (entry) => {
+      const doc = await getDoc(entry.category, entry.slug);
+      const created = safeIso(doc?.date);
+      const modified = safeIso(doc?.modified) ?? entry.modifiedAt;
+      const eventType =
+        created && modified && new Date(modified).getTime() - new Date(created).getTime() < 1_000
+          ? 'note_created'
+          : 'note_updated';
 
-    return {
-      id: `recent:${entry.key}:${modified}`,
-      type: eventType,
-      title: entry.title,
-      timestampIso: modified,
-      href: entry.path,
-      meta: {
-        category: entry.category,
-        slug: entry.slug,
-      },
-    } satisfies ActivityEvent;
-  });
+      return {
+        id: `recent:${entry.key}:${modified}`,
+        type: eventType,
+        title: entry.title,
+        timestampIso: modified,
+        href: entry.path,
+        meta: {
+          category: entry.category,
+          slug: entry.slug,
+        },
+      } satisfies ActivityEvent;
+    })
+  );
 }
 
-function ticketEvents(): ActivityEvent[] {
-  return readSidTickets().map((ticket) => ({
+async function ticketEvents(): Promise<ActivityEvent[]> {
+  return (await readSidTickets()).map((ticket) => ({
     id: `ticket:${ticket.key}:${ticket.createdAt}`,
     type: 'ticket_created',
     title: `Sid ticket: ${ticket.sourceIdeaSlug ?? ticket.id}`,
@@ -108,8 +111,8 @@ function ticketEvents(): ActivityEvent[] {
   }));
 }
 
-function renderEvents(): ActivityEvent[] {
-  return getDocsByCategory('renders').map((render) => {
+async function renderEvents(): Promise<ActivityEvent[]> {
+  return (await getDocsByCategory('renders')).map((render) => {
     const timestampIso = safeIso(render.modified) ?? safeIso(render.date) ?? new Date(0).toISOString();
     return {
       id: `render:${render.slug}:${timestampIso}`,
@@ -124,19 +127,19 @@ function renderEvents(): ActivityEvent[] {
   });
 }
 
-export function getActivityEvents(limit = 200): ActivityEvent[] {
+export async function getActivityEvents(limit = 200): Promise<ActivityEvent[]> {
   const events = [
-    ...recentsEvents(),
-    ...ticketEvents(),
-    ...renderEvents(),
-    ...readApprovedIdeaEvents(),
+    ...(await recentsEvents()),
+    ...(await ticketEvents()),
+    ...(await renderEvents()),
+    ...(await readApprovedIdeaEvents()),
   ].sort((a, b) => new Date(b.timestampIso).getTime() - new Date(a.timestampIso).getTime());
 
   return events.slice(0, limit);
 }
 
-export function getActivitySnapshot(limit = 200): ActivitySnapshot {
-  const events = getActivityEvents(limit);
+export async function getActivitySnapshot(limit = 200): Promise<ActivitySnapshot> {
+  const events = await getActivityEvents(limit);
   return {
     events,
     lastActivityIso: events[0]?.timestampIso ?? null,
@@ -145,8 +148,8 @@ export function getActivitySnapshot(limit = 200): ActivitySnapshot {
 
 export type HeatmapDay = { date: string; count: number };
 
-export function getActivityHeatmapData(days = 365): HeatmapDay[] {
-  const events = getActivityEvents(2000);
+export async function getActivityHeatmapData(days = 365): Promise<HeatmapDay[]> {
+  const events = await getActivityEvents(2000);
   const counts = new Map<string, number>();
 
   for (const event of events) {

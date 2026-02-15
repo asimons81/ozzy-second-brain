@@ -1,10 +1,7 @@
 import Link from 'next/link';
-import { getDocsByTag, getTagCounts, normalizeTag } from '@/lib/brain';
+import { getDocsByTag, normalizeTag } from '@/lib/brain';
 
-
-export async function generateStaticParams() {
-  return getTagCounts().map((item) => ({ tag: item.tag }));
-}
+export const dynamic = 'force-dynamic';
 
 function noteHref(category: string, slug: string) {
   return `/docs/${encodeURIComponent(category)}/${encodeURIComponent(slug)}`;
@@ -13,7 +10,7 @@ function noteHref(category: string, slug: string) {
 export default async function TagDetailPage({ params }: { params: Promise<{ tag: string }> }) {
   const { tag } = await params;
   const decodedTag = normalizeTag(decodeURIComponent(tag));
-  const docs = getDocsByTag(decodedTag);
+  const docs = await getDocsByTag(decodedTag);
 
   return (
     <div className="max-w-6xl mx-auto py-8 md:py-16 px-4 md:px-10 space-y-8">

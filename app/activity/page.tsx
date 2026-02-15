@@ -5,9 +5,9 @@ import { getActivityEvents, getActivityHeatmapData } from '@/lib/activity';
 
 export const dynamic = 'force-dynamic';
 
-export default function ActivityPage() {
-  const events = getActivityEvents(400);
-  const heatmapData = getActivityHeatmapData(182);
+export default async function ActivityPage() {
+  const events = await getActivityEvents(400);
+  const heatmapData = await getActivityHeatmapData(182);
 
   return (
     <div className="max-w-6xl mx-auto py-8 md:py-16 px-4 md:px-10 space-y-6">
@@ -32,4 +32,3 @@ export default function ActivityPage() {
     </div>
   );
 }
-

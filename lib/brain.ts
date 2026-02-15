@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import matter from 'gray-matter';
 import { categories, getCategoryByKey } from '@/lib/categories';
 import { getStorageAdapter, readRecents } from '@/lib/storage';
@@ -29,60 +27,28 @@ export interface Doc {
   ai_review?: string;
 }
 
-export type ContentSource = 'fs' | 'fetch-assets';
-
-const ASSET_CONTENT_DIR = path.join(process.cwd(), 'public', 'content');
+export type ContentSource = 'storage';
 
 function safeLog(message: string, data?: Record<string, unknown>) {
+  if (process.env.SECOND_BRAIN_DEBUG !== '1') return;
   console.info(`[brain] ${message}`, data ?? {});
 }
 
 export function getContentSource(): ContentSource {
-  const inWorkers = process.env.CF_WORKER === '1' || process.env.CF_PAGES === '1';
-  return inWorkers ? 'fetch-assets' : 'fs';
+  return 'storage';
 }
 
-function getAssetIndex(): Record<string, string[]> {
-  const indexPath = path.join(ASSET_CONTENT_DIR, 'index.json');
-  if (!fs.existsSync(indexPath)) return {};
-
-  try {
-    return JSON.parse(fs.readFileSync(indexPath, 'utf-8')) as Record<string, string[]>;
-  } catch {
-    return {};
-  }
-}
-
-function listDocSlugs(category: string): string[] {
-  const source = getContentSource();
-
-  if (source === 'fetch-assets') {
-    const index = getAssetIndex();
-    const slugs = index[category] ?? [];
-    safeLog('content list', { source, category, count: slugs.length });
-    return slugs;
-  }
-
-  const slugs = getStorageAdapter().listNotes(category);
-  safeLog('content list', { source, category, count: slugs.length });
+async function listDocSlugs(category: string): Promise<string[]> {
+  const storage = await getStorageAdapter();
+  const slugs = await storage.listNotes(category);
+  safeLog('content list', { source: 'storage', category, count: slugs.length });
   return slugs;
 }
 
-function readDocMarkdown(category: string, slug: string): string {
-  const source = getContentSource();
-
-  if (source === 'fetch-assets') {
-    const filePath = path.join(ASSET_CONTENT_DIR, category, `${slug}.md`);
-    if (!fs.existsSync(filePath)) {
-      throw new Error('Note not found.');
-    }
-
-    safeLog('content read', { source, category, slug });
-    return fs.readFileSync(filePath, 'utf-8');
-  }
-
-  safeLog('content read', { source, category, slug });
-  return getStorageAdapter().readNote(category, slug);
+async function readDocMarkdown(category: string, slug: string): Promise<string> {
+  safeLog('content read', { source: 'storage', category, slug });
+  const storage = await getStorageAdapter();
+  return storage.readNote(category, slug);
 }
 
 export function getReadingStats(content: string) {
@@ -151,16 +117,16 @@ export function getCategories() {
   return categories.map((category) => category.key);
 }
 
-export function getDocsByCategory(category: string): Doc[] {
+export async function getDocsByCategory(category: string): Promise<Doc[]> {
   const known = getCategoryByKey(category);
   if (!known) return [];
 
-  const files = listDocSlugs(category).map((slug) => `${slug}.md`);
+  const files = (await listDocSlugs(category)).map((slug) => `${slug}.md`);
 
-  return files
-    .map((file) => {
+  const docs = await Promise.all(
+    files.map(async (file) => {
       const slug = file.replace('.md', '');
-      const fileContent = readDocMarkdown(category, slug);
+      const fileContent = await readDocMarkdown(category, slug);
       const { data, content } = matter(fileContent);
 
       const fm = data as Record<string, unknown>;
@@ -185,21 +151,23 @@ export function getDocsByCategory(category: string): Doc[] {
         excerpt: excerptFor(content),
       } satisfies Doc;
     })
-    .sort((a, b) => {
-      if (category === 'journal' || category === 'renders' || category === 'briefs') {
-        return docTimestamp(b) - docTimestamp(a) || b.slug.localeCompare(a.slug);
-      }
+  );
 
-      return a.slug.localeCompare(b.slug);
-    });
+  return docs.sort((a, b) => {
+    if (category === 'journal' || category === 'renders' || category === 'briefs') {
+      return docTimestamp(b) - docTimestamp(a) || b.slug.localeCompare(a.slug);
+    }
+
+    return a.slug.localeCompare(b.slug);
+  });
 }
 
-export function getDoc(category: string, slug: string): Doc | null {
+export async function getDoc(category: string, slug: string): Promise<Doc | null> {
   const known = getCategoryByKey(category);
   if (!known) return null;
 
   try {
-    const fileContent = readDocMarkdown(category, slug);
+    const fileContent = await readDocMarkdown(category, slug);
     const { data, content } = matter(fileContent);
     const fm = data as Record<string, unknown>;
 
@@ -226,21 +194,21 @@ export function getDoc(category: string, slug: string): Doc | null {
   }
 }
 
-export function getAllDocs(): Doc[] {
+export async function getAllDocs(): Promise<Doc[]> {
   const all: Doc[] = [];
   for (const category of getCategories()) {
-    all.push(...getDocsByCategory(category));
+    all.push(...(await getDocsByCategory(category)));
   }
   return all;
 }
 
-export function getRecentDocs(limit = 12): Doc[] {
-  const indexed = readRecents(limit * 2);
+export async function getRecentDocs(limit = 12): Promise<Doc[]> {
+  const indexed = await readRecents(limit * 2);
   if (indexed.length > 0) {
     const docs: Doc[] = [];
 
     for (const entry of indexed) {
-      const doc = getDoc(entry.category, entry.slug);
+      const doc = await getDoc(entry.category, entry.slug);
       if (doc) {
         docs.push(doc);
       }
@@ -254,7 +222,7 @@ export function getRecentDocs(limit = 12): Doc[] {
     }
   }
 
-  const all = getAllDocs();
+  const all = await getAllDocs();
   const withTs = all.map((doc) => ({ doc, ts: docTimestamp(doc) }));
 
   return withTs
@@ -263,8 +231,8 @@ export function getRecentDocs(limit = 12): Doc[] {
     .map((item) => item.doc);
 }
 
-export function getAllPaletteItems(): PaletteItem[] {
-  const docs = getAllDocs();
+export async function getAllPaletteItems(): Promise<PaletteItem[]> {
+  const docs = await getAllDocs();
   return docs
     .map((doc) => ({
       title: doc.title,
@@ -275,10 +243,10 @@ export function getAllPaletteItems(): PaletteItem[] {
     .sort((a, b) => (a.group ?? '').localeCompare(b.group ?? '') || a.title.localeCompare(b.title));
 }
 
-export function getTagCounts() {
+export async function getTagCounts() {
   const counts = new Map<string, number>();
 
-  for (const doc of getAllDocs()) {
+  for (const doc of await getAllDocs()) {
     for (const tag of doc.tags ?? []) {
       counts.set(tag, (counts.get(tag) ?? 0) + 1);
     }
@@ -289,11 +257,11 @@ export function getTagCounts() {
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 }
 
-export function getDocsByTag(tag: string) {
+export async function getDocsByTag(tag: string) {
   const normalized = normalizeTag(tag);
   if (!normalized) return [];
 
-  return getAllDocs()
+  return (await getAllDocs())
     .filter((doc) => (doc.tags ?? []).includes(normalized))
     .sort((a, b) => docTimestamp(b) - docTimestamp(a) || a.title.localeCompare(b.title));
 }

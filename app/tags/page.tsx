@@ -3,8 +3,8 @@ import { getTagCounts } from '@/lib/brain';
 
 export const dynamic = 'force-dynamic';
 
-export default function TagsPage() {
-  const tags = getTagCounts();
+export default async function TagsPage() {
+  const tags = await getTagCounts();
 
   return (
     <div className="max-w-6xl mx-auto py-8 md:py-16 px-4 md:px-10 space-y-8">

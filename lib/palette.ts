@@ -121,8 +121,8 @@ function stripMarkdown(content: string) {
     .trim();
 }
 
-function docItems(): PaletteItem[] {
-  return getAllDocs().map((doc) => ({
+async function docItems(): Promise<PaletteItem[]> {
+  return (await getAllDocs()).map((doc) => ({
     id: `doc-${doc.category}-${doc.slug}`,
     title: doc.title,
     subtitle: doc.modified ?? doc.date ?? doc.slug,
@@ -134,6 +134,6 @@ function docItems(): PaletteItem[] {
   }));
 }
 
-export function getPaletteItems(): PaletteItem[] {
-  return [...navItems(), ...createItems(), ...systemsItems(), ...docItems()];
+export async function getPaletteItems(): Promise<PaletteItem[]> {
+  return [...navItems(), ...createItems(), ...systemsItems(), ...(await docItems())];
 }

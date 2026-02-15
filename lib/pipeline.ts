@@ -120,10 +120,11 @@ function markdownTitle(raw: string, slug: string) {
   return slug.replace(/-/g, ' ');
 }
 
-export function readSidTickets(): SidTicket[] {
+export async function readSidTickets(): Promise<SidTicket[]> {
   if (!fs.existsSync(SID_QUEUE_DIR)) return [];
 
-  const renderSlugs = new Set(getStorageAdapter().listNotes('renders'));
+  const storage = await getStorageAdapter();
+  const renderSlugs = new Set(await storage.listNotes('renders'));
   const files = fs.readdirSync(SID_QUEUE_DIR).filter((name) => name.endsWith('.json'));
 
   const tickets = files
@@ -165,14 +166,14 @@ export function readSidTickets(): SidTicket[] {
   return tickets.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export function getSidTicketByKey(ticketKeyValue: string) {
-  return readSidTickets().find((ticket) => ticket.key === ticketKeyValue || ticket.id === ticketKeyValue) ?? null;
+export async function getSidTicketByKey(ticketKeyValue: string) {
+  return (await readSidTickets()).find((ticket) => ticket.key === ticketKeyValue || ticket.id === ticketKeyValue) ?? null;
 }
 
-export function readApprovedIdeas(): ApprovedIdea[] {
-  const storage = getStorageAdapter();
-  const runtime = getStorageRuntimeInfo();
-  const renderSlugs = new Set(storage.listNotes('renders'));
+export async function readApprovedIdeas(): Promise<ApprovedIdea[]> {
+  const storage = await getStorageAdapter();
+  const runtime = await getStorageRuntimeInfo();
+  const renderSlugs = new Set(await storage.listNotes('renders'));
   const approvedDir = path.join(runtime.dataDir, 'approved-ideas');
   if (!fs.existsSync(approvedDir)) return [];
 

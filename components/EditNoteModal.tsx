@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PencilLine } from 'lucide-react';
-import { updateNote } from '@/app/actions/notes';
+import { PencilLine, Trash2 } from 'lucide-react';
+import { readAdminToken } from '@/lib/client/admin-token';
 
 type EditNoteModalProps = {
   category: string;
@@ -14,6 +14,7 @@ type EditNoteModalProps = {
   storageWarning?: string | null;
   writesAllowed: boolean;
   readOnlyMessage: string;
+  adminToken?: string;
 };
 
 export function EditNoteModal({
@@ -25,6 +26,7 @@ export function EditNoteModal({
   storageWarning,
   writesAllowed,
   readOnlyMessage,
+  adminToken = '',
 }: EditNoteModalProps) {
   const router = useRouter();
 
@@ -35,9 +37,21 @@ export function EditNoteModal({
   const [nextBody, setNextBody] = useState(content);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [resolvedToken, setResolvedToken] = useState(adminToken);
+
+  const canWrite = writesAllowed && resolvedToken.trim().length > 0;
+
+  useEffect(() => {
+    if (!adminToken && typeof window !== 'undefined') {
+      setResolvedToken(readAdminToken());
+    } else {
+      setResolvedToken(adminToken);
+    }
+  }, [adminToken]);
 
   const openModal = () => {
-    if (!writesAllowed) {
+    if (!canWrite) {
       setError(readOnlyMessage);
       return;
     }
@@ -47,6 +61,7 @@ export function EditNoteModal({
     setNextBody(content);
     setError(null);
     setSaving(false);
+    setDeleting(false);
     setOpen(true);
   };
 
@@ -54,30 +69,71 @@ export function EditNoteModal({
     setOpen(false);
     setError(null);
     setSaving(false);
+    setDeleting(false);
   };
 
   const save = async () => {
-    if (saving || !writesAllowed) return;
+    if (saving || !canWrite) return;
 
     setSaving(true);
     setError(null);
 
-    const result = await updateNote({
-      category,
-      slug,
-      title: nextTitle,
-      tags: nextTags,
-      body: nextBody,
-    });
+    try {
+      const res = await fetch(`/api/notes/${encodeURIComponent(category)}/${encodeURIComponent(slug)}`, {
+        method: 'PUT',
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${resolvedToken.trim()}`,
+        },
+        body: JSON.stringify({
+          title: nextTitle,
+          tags: nextTags,
+          content: nextBody,
+        }),
+      });
 
-    if (!result.ok) {
-      setError(result.error);
+      const payload = (await res.json().catch(() => null)) as { error?: string } | null;
+
+      if (!res.ok) {
+        throw new Error(payload?.error ?? 'Unable to save note.');
+      }
+
+      closeModal();
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to save note.');
       setSaving(false);
-      return;
     }
+  };
 
-    closeModal();
-    router.refresh();
+  const remove = async () => {
+    if (deleting || !canWrite) return;
+    if (!window.confirm('Delete this note? This cannot be undone.')) return;
+
+    setDeleting(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/notes/${encodeURIComponent(category)}/${encodeURIComponent(slug)}`, {
+        method: 'DELETE',
+        headers: {
+          authorization: `Bearer ${resolvedToken.trim()}`,
+        },
+      });
+
+      const payload = (await res.json().catch(() => null)) as { error?: string; href?: string } | null;
+
+      if (!res.ok) {
+        throw new Error(payload?.error ?? 'Unable to delete note.');
+      }
+
+      closeModal();
+      router.push(payload?.href ?? `/docs/${encodeURIComponent(category)}`);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to delete note.');
+      setDeleting(false);
+    }
   };
 
   return (
@@ -85,15 +141,15 @@ export function EditNoteModal({
       <button
         type="button"
         onClick={openModal}
-        disabled={!writesAllowed}
-        title={!writesAllowed ? readOnlyMessage : undefined}
+        disabled={!canWrite}
+        title={!canWrite ? readOnlyMessage : undefined}
         className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <PencilLine size={16} className="text-brand" />
         <span className="text-xs font-black uppercase tracking-widest">Edit</span>
       </button>
 
-      {!writesAllowed && error && (
+      {!canWrite && error && (
         <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
           {error}
         </div>
@@ -169,7 +225,15 @@ export function EditNoteModal({
               </div>
 
               <div className="px-4 md:px-6 py-4 border-t border-white/10 flex items-center justify-between gap-4">
-                <span className="text-[11px] font-mono text-zinc-600">Ctrl/Cmd+Enter to save</span>
+                <button
+                  type="button"
+                  onClick={() => void remove()}
+                  disabled={saving || deleting}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-red-500/30 bg-red-500/10 text-xs font-bold text-red-200 disabled:opacity-60"
+                >
+                  <Trash2 size={14} />
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -180,7 +244,7 @@ export function EditNoteModal({
                   </button>
                   <button
                     type="submit"
-                    disabled={saving || !writesAllowed}
+                    disabled={saving || deleting || !canWrite}
                     className="px-4 py-2 rounded-xl bg-brand/20 border border-brand/40 text-sm font-bold text-brand disabled:opacity-60"
                   >
                     {saving ? 'Saving...' : 'Save changes'}

@@ -3,12 +3,14 @@
 	"main": ".open-next/worker.js",
 	"name": "ozzy-second-brain",
 	"compatibility_date": "2026-02-14",
-	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
 	"vars": {
-  "NEXT_INC_CACHE_R2_PREFIX": "ozzy-second-brain:"
-},
-
-  "assets": {
+		"NEXT_INC_CACHE_R2_PREFIX": "ozzy-second-brain:"
+	},
+	"assets": {
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
 	},
@@ -31,7 +33,17 @@
 			"bucket_name": "cache"
 		}
 	],
-	"images": {
+	
+	"d1_databases": [
+  {
+    "binding": "SECOND_BRAIN_DB",
+    "database_name": "ozzy-second-brain-db",
+    "database_id": "578b6871-c605-4afd-8fe6-9d1524839e61",
+    "migrations_dir": "migrations"
+  }
+],
+
+"images": {
 		// Enable image optimization
 		// see https://opennext.js.org/cloudflare/howtos/image
 		"binding": "IMAGES"
