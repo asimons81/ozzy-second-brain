@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PencilLine, Trash2 } from 'lucide-react';
-import { readAdminToken } from '@/lib/client/admin-token';
 
 type EditNoteModalProps = {
   category: string;
@@ -13,8 +12,8 @@ type EditNoteModalProps = {
   content: string;
   storageWarning?: string | null;
   writesAllowed: boolean;
+  authenticated?: boolean;
   readOnlyMessage: string;
-  adminToken?: string;
 };
 
 export function EditNoteModal({
@@ -25,8 +24,8 @@ export function EditNoteModal({
   content,
   storageWarning,
   writesAllowed,
+  authenticated = false,
   readOnlyMessage,
-  adminToken = '',
 }: EditNoteModalProps) {
   const router = useRouter();
 
@@ -38,23 +37,46 @@ export function EditNoteModal({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [resolvedToken, setResolvedToken] = useState(adminToken);
+  const [isAuthenticated, setIsAuthenticated] = useState(authenticated);
+
+  useEffect(() => {
+    let active = true;
+
+    const run = async () => {
+      try {
+        const response = await fetch('/api/auth/me', {
+          cache: 'no-store',
+          credentials: 'include',
+        });
+        if (!response.ok || !active) return;
+
+        const payload = (await response.json().catch(() => null)) as { authenticated?: boolean } | null;
+        if (payload?.authenticated === true) {
+          setIsAuthenticated(true);
+          return;
+        }
+      } catch {
+        // Ignore network errors and keep current auth state.
+      }
+      if (active) {
+        setIsAuthenticated(false);
+      }
+    };
+
+    void run();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const writeDisabledReason = !writesAllowed
     ? (readOnlyMessage?.trim() || 'Read-only mode')
-    : resolvedToken.trim().length === 0
-      ? 'Admin token required'
+    : !isAuthenticated
+      ? 'Sign in with Google as an admin account'
       : null;
-  const canWrite = writesAllowed && resolvedToken.trim().length > 0;
+  const canWrite = writesAllowed && isAuthenticated;
   const busy = saving || deleting;
-
-  useEffect(() => {
-    if (!adminToken && typeof window !== 'undefined') {
-      setResolvedToken(readAdminToken());
-    } else {
-      setResolvedToken(adminToken);
-    }
-  }, [adminToken]);
 
   const openModal = () => {
     setNextTitle(title);
@@ -89,7 +111,6 @@ export function EditNoteModal({
         method: 'PUT',
         headers: {
           'content-type': 'application/json',
-          authorization: `Bearer ${resolvedToken.trim()}`,
         },
         body: JSON.stringify({
           title: nextTitle,
@@ -122,9 +143,6 @@ export function EditNoteModal({
     try {
       const res = await fetch(`/api/notes/${encodeURIComponent(category)}/${encodeURIComponent(slug)}`, {
         method: 'DELETE',
-        headers: {
-          authorization: `Bearer ${resolvedToken.trim()}`,
-        },
       });
       const bodyText = await res.text();
       let payload: { error?: string; href?: string } | null = null;

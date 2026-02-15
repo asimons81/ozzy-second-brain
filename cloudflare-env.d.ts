@@ -13,6 +13,10 @@ declare global {
   interface CloudflareEnv {
     SECOND_BRAIN_DB?: D1Database;
     SECOND_BRAIN_ADMIN_TOKEN?: string;
+    GOOGLE_CLIENT_ID?: string;
+    GOOGLE_CLIENT_SECRET?: string;
+    ADMIN_GOOGLE_ALLOWLIST?: string;
+    SESSION_TTL_HOURS?: string;
   }
 }
 

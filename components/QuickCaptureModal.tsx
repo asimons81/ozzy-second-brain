@@ -19,8 +19,8 @@ type QuickCaptureModalProps = {
   presetCategory?: string;
   presetTitle?: string;
   writesAllowed: boolean;
+  authenticated: boolean;
   readOnlyMessage: string;
-  adminToken: string;
 };
 
 function resolveInitialCategory(
@@ -67,8 +67,8 @@ export function QuickCaptureModal({
   presetCategory,
   presetTitle,
   writesAllowed,
+  authenticated,
   readOnlyMessage,
-  adminToken,
 }: QuickCaptureModalProps) {
   const router = useRouter();
   const firstCategory = resolveInitialCategory(categories, presetCategory);
@@ -102,7 +102,7 @@ export function QuickCaptureModal({
   const runSubmit = async () => {
     if (saving) return;
 
-    if (!writesAllowed || !adminToken.trim()) {
+    if (!writesAllowed || !authenticated) {
       setError(readOnlyMessage);
       return;
     }
@@ -131,7 +131,6 @@ export function QuickCaptureModal({
         method: 'PUT',
         headers: {
           'content-type': 'application/json',
-          authorization: `Bearer ${adminToken.trim()}`,
         },
         body: JSON.stringify({
           title,
@@ -201,7 +200,7 @@ export function QuickCaptureModal({
                 {storageWarning}
               </div>
             )}
-            {(!writesAllowed || !adminToken.trim()) && (
+            {(!writesAllowed || !authenticated) && (
               <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
                 {readOnlyMessage}
               </div>
@@ -218,7 +217,7 @@ export function QuickCaptureModal({
                 <input
                   autoFocus
                   required
-                  disabled={!writesAllowed || !adminToken.trim()}
+                  disabled={!writesAllowed || !authenticated}
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                   className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100 disabled:opacity-60"
@@ -229,7 +228,7 @@ export function QuickCaptureModal({
               <label className="space-y-1">
                 <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Category</span>
                 <select
-                  disabled={!writesAllowed || !adminToken.trim()}
+                  disabled={!writesAllowed || !authenticated}
                   value={category}
                   onChange={(event) => onCategoryChange(event.target.value)}
                   className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100 disabled:opacity-60"
@@ -246,7 +245,7 @@ export function QuickCaptureModal({
             <label className="space-y-1 block">
               <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Tags</span>
               <input
-                disabled={!writesAllowed || !adminToken.trim()}
+                disabled={!writesAllowed || !authenticated}
                 value={tags}
                 onChange={(event) => setTags(event.target.value)}
                 className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-zinc-100 disabled:opacity-60"
@@ -257,7 +256,7 @@ export function QuickCaptureModal({
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                disabled={!writesAllowed || !adminToken.trim()}
+                disabled={!writesAllowed || !authenticated}
                 checked={requestReview}
                 onChange={(event) => setRequestReview(event.target.checked)}
                 className="w-4 h-4 rounded border-white/20 bg-black/40 text-brand accent-[#00f2ff] disabled:opacity-60"
@@ -268,7 +267,7 @@ export function QuickCaptureModal({
             <label className="space-y-1 block">
               <span className="text-xs font-black uppercase tracking-widest text-zinc-500">Body</span>
               <textarea
-                disabled={!writesAllowed || !adminToken.trim()}
+                disabled={!writesAllowed || !authenticated}
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
                 className="w-full min-h-[320px] rounded-2xl border border-white/10 bg-black/40 px-3 py-3 text-zinc-100 font-mono text-sm disabled:opacity-60"
@@ -289,7 +288,7 @@ export function QuickCaptureModal({
               </button>
               <button
                 type="submit"
-                disabled={saving || !writesAllowed || !adminToken.trim()}
+                disabled={saving || !writesAllowed || !authenticated}
                 className="px-4 py-2 rounded-xl bg-brand/20 border border-brand/40 text-sm font-bold text-brand disabled:opacity-60"
               >
                 {saving ? 'Saving...' : 'Create note'}
