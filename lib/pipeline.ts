@@ -172,26 +172,28 @@ export async function getSidTicketByKey(ticketKeyValue: string) {
 
 export async function readApprovedIdeas(): Promise<ApprovedIdea[]> {
   const storage = await getStorageAdapter();
-  const runtime = await getStorageRuntimeInfo();
   const renderSlugs = new Set(await storage.listNotes('renders'));
-  const approvedDir = path.join(runtime.dataDir, 'approved-ideas');
-  if (!fs.existsSync(approvedDir)) return [];
+  const slugs = await storage.listNotes('approved-ideas');
 
-  const files = fs.readdirSync(approvedDir).filter((fileName) => fileName.endsWith('.md'));
-  const ideas = files
-    .map((fileName) => {
-      const slug = fileName.replace(/\.md$/i, '');
+  const ideas = await Promise.all(
+    slugs.map(async (slug) => {
       const outputSlug = `${slug}-drafts`;
       const outputExists = renderSlugs.has(outputSlug);
-      const filePath = path.join(approvedDir, fileName);
 
       try {
-        const raw = fs.readFileSync(filePath, 'utf-8');
+        const note: any = await storage.readNote('approved-ideas', slug);
+        const raw = typeof note === 'string' ? note : note?.content ?? '';
+        const modifiedAt =
+          note?.modified ??
+          note?.updatedAt ??
+          note?.updated_at ??
+          new Date().toISOString();
+
         return {
           slug,
           title: markdownTitle(raw, slug),
-          modifiedAt: new Date(fs.statSync(filePath).mtimeMs).toISOString(),
-          href: `/docs/ideas/${encodeURIComponent(slug)}`,
+          modifiedAt,
+          href: `/docs/approved-ideas/${encodeURIComponent(slug)}`,
           outputSlug,
           outputExists,
           outputHref: `/renders/${encodeURIComponent(outputSlug)}`,
@@ -200,7 +202,8 @@ export async function readApprovedIdeas(): Promise<ApprovedIdea[]> {
         return null;
       }
     })
-    .filter((item): item is ApprovedIdea => item !== null);
+  );
 
-  return ideas.sort((a, b) => new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime());
+  const filtered = ideas.filter((item): item is ApprovedIdea => item !== null);
+  return filtered.sort((a, b) => new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime());
 }
