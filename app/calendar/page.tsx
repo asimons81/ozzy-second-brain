@@ -7,7 +7,7 @@ function getWeekDays(offset = 0) {
   const today = new Date();
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - today.getDay() + offset * 7);
-  
+
   const days = [];
   for (let i = 0; i < 7; i++) {
     const day = new Date(startOfWeek);
@@ -57,7 +57,7 @@ export default function CalendarPage() {
             <span className="text-[10px] font-black uppercase tracking-widest text-brand">X Content Pipeline</span>
           </div>
           <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-none italic uppercase">
-            Content <br/> <span className="text-zinc-500">Calendar</span>
+            Content <br /> <span className="text-zinc-500">Calendar</span>
           </h2>
         </div>
 
@@ -94,15 +94,14 @@ export default function CalendarPage() {
         {weekDays.map((day, idx) => {
           const content = getContentForDay(day);
           const isTodayDay = isToday(day);
-          
+
           return (
             <div
               key={idx}
-              className={`min-h-[180px] rounded-2xl border p-4 transition-all ${
-                isTodayDay 
-                  ? 'bg-brand/5 border-brand/30' 
-                  : 'bg-zinc-900/50 border-white/5 hover:border-white/10'
-              }`}
+              className={`min-h-[180px] rounded-2xl border p-4 transition-all ${isTodayDay
+                ? 'bg-brand/5 border-brand/30'
+                : 'bg-zinc-900/50 border-white/5 hover:border-white/10'
+                }`}
             >
               <div className={`text-center mb-3 ${isTodayDay ? 'text-brand' : 'text-zinc-500'}`}>
                 <div className="text-[10px] font-black uppercase tracking-widest">{weekDaysShort[idx]}</div>
@@ -110,20 +109,19 @@ export default function CalendarPage() {
                   {day.getDate()}
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 {content.map((item, i) => (
                   <div
                     key={i}
-                    className={`text-xs p-2 rounded-lg border ${
-                      item.status === 'published'
-                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                        : item.status === 'scheduled'
+                    className={`text-xs p-2 rounded-lg border ${item.status === 'published'
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                      : item.status === 'scheduled'
                         ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
                         : item.status === 'draft'
-                        ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
-                        : 'bg-zinc-800/50 border-white/5 text-zinc-400'
-                    }`}
+                          ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
+                          : 'bg-zinc-800/50 border-white/5 text-zinc-400'
+                      }`}
                   >
                     <div className="flex items-center gap-1 mb-1">
                       {item.type === 'x' && <Twitter size={10} />}
@@ -132,7 +130,7 @@ export default function CalendarPage() {
                     <div className="font-medium truncate">{item.title}</div>
                   </div>
                 ))}
-                
+
                 <button
                   className="w-full p-2 rounded-lg border border-dashed border-white/10 text-zinc-600 hover:text-zinc-400 hover:border-white/20 transition-all text-xs flex items-center justify-center gap-1"
                 >
