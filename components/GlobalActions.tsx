@@ -36,7 +36,13 @@ export function GlobalActions({
   const [captureSession, setCaptureSession] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [adminToken, setAdminToken] = useState(() => readAdminToken());
+  const [adminToken, setAdminToken] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setAdminToken(readAdminToken());
+  }, []);
   const [draftAdminToken, setDraftAdminToken] = useState(() => readAdminToken());
 
   const showToast = (value: string) => {
