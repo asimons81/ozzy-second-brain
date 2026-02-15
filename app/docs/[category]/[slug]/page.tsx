@@ -53,7 +53,7 @@ function NoteList({
             <li key={item.id}>
               <Link
                 href={noteHref(item.category, item.slug)}
-                className="block rounded-2xl border border-white/10 bg-white/5 p-3 hover:bg-white/10 transition-colors"
+                className="block rounded-2xl border border-white/5 bg-white/5 p-3 hover:bg-white/10 transition-colors"
               >
                 <div className="text-sm font-bold tracking-tight text-zinc-100">{item.title}</div>
                 <div className="mt-2 flex items-center justify-between gap-2 text-[10px] font-mono uppercase tracking-wider text-zinc-500">
@@ -110,11 +110,10 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{knownCategory.title}</span>
               </div>
               {doc.author && (
-                <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest ${
-                  doc.author === 'agent'
-                    ? 'border-brand/30 bg-brand/10 text-brand'
-                    : 'border-zinc-500/30 bg-zinc-500/10 text-zinc-400'
-                }`}>
+                <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest ${doc.author === 'agent'
+                  ? 'border-brand/30 bg-brand/10 text-brand'
+                  : 'border-zinc-500/30 bg-zinc-500/10 text-zinc-400'
+                  }`}>
                   {doc.author === 'agent' ? <Bot size={10} /> : <User size={10} />}
                   {doc.author === 'agent' ? 'Ozzy' : 'You'}
                 </div>
@@ -125,7 +124,7 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
                 </div>
               )}
               {doc.review_status === 'reviewed' && (
-                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-[10px] font-black uppercase tracking-widest text-emerald-300">
+                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-brand/30 bg-brand/10 text-[10px] font-black uppercase tracking-widest text-brand">
                   Reviewed
                 </div>
               )}
@@ -207,7 +206,7 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
                 video: ({ ...props }) => (
                   <video
                     {...props}
-                    className="w-full rounded-2xl border border-white/10 shadow-xl"
+                    className="w-full rounded-2xl border border-white/5 shadow-xl"
                     controls
                   />
                 ),
@@ -233,7 +232,7 @@ export default async function DocPage({ params }: { params: Promise<{ category: 
           </footer>
         </div>
 
-        <aside className="glass rounded-[24px] border-white/10 p-4 md:p-5 h-fit space-y-6 xl:sticky xl:top-24">
+        <aside className="glass rounded-[24px] border-white/5 p-4 md:p-5 h-fit space-y-6 xl:sticky xl:top-24">
           <div className="text-[10px] font-black uppercase tracking-[0.2em] text-brand">Brain Panel</div>
           <NoteList
             title="Backlinks"

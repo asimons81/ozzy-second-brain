@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 function badge(type?: string) {
   const t = (type ?? 'trend').toLowerCase();
-  if (t === 'captions') return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+  if (t === 'captions') return 'bg-brand/10 text-brand border-brand/20';
   if (t === 'experiment') return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
   return 'bg-brand/10 text-brand border-brand/20';
 }
@@ -32,9 +32,9 @@ export default async function RendersPage() {
           <Link
             key={r.slug}
             href={`/renders/${encodeURIComponent(r.slug)}`}
-            className="group glass p-4 rounded-[28px] border-white/5 hover:bg-white/10 transition-all"
+            className="group glass p-4 rounded-2xl border-white/5 hover:bg-white/10 transition-all"
           >
-            <div className="aspect-video rounded-2xl overflow-hidden border border-white/10 bg-black">
+            <div className="aspect-video rounded-2xl overflow-hidden border border-white/5 bg-black">
               {r.video ? (
                 <video
                   className="w-full h-full object-cover"

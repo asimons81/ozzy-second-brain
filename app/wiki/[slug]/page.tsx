@@ -35,7 +35,7 @@ export default async function WikiResolverPage({ params }: { params: Promise<{ s
 
   return (
     <div className="max-w-3xl mx-auto py-16 md:py-24 px-4 md:px-8">
-      <div className="glass rounded-[32px] border-white/10 p-6 md:p-10 space-y-6">
+      <div className="glass rounded-[32px] border-white/5 p-6 md:p-10 space-y-6">
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 bg-brand/10 border border-brand/20 px-4 py-1 rounded-full">
             <span className="text-[10px] font-black uppercase tracking-widest text-brand">Wiki</span>

@@ -11,12 +11,11 @@
   --color-surface-med: #0d0d0d;
   --color-surface-high: #141414;
 
-  /* Primary accent */
-  --color-brand: #00f2ff;
-  --color-brand-muted: #008b8b;
-
-  /* Legacy accent (keep for continuity) */
-  --color-brand-legacy: #4fb7a0;
+  /* Primary accent - Single Source of Truth */
+  --color-brand: #4fb7a0;
+  --color-brand-muted: #2d5b52;
+  --color-brand-weak: #1a2624;
+  --color-brand-border: #4fb7a033; /* 20% opacity hardcoded for reference, but usage in v4 should be strict */
 
   --color-hazard: #ffd700;
   --color-status: #39ff14;
@@ -34,18 +33,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Glassmorphism utility (industrial) */
+/* Glassmorphism utility (Dark Command center) */
 .glass {
-  background: color-mix(in oklab, var(--color-surface-med) 75%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: color-mix(in oklab, var(--color-surface-med) 85%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--color-brand-border);
 }
 
 /* Focus ring standard */
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 242, 255, 0.35), 0 0 0 6px rgba(2, 2, 2, 1);
+  box-shadow: 0 0 0 2px var(--color-brand), 0 0 0 4px rgba(2, 2, 2, 1);
 }
 
 /* Noise texture overlay */

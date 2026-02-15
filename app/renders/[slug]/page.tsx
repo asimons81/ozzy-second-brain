@@ -34,7 +34,7 @@ export default async function RenderDetail({ params }: { params: Promise<{ slug:
         <section className="glass rounded-[32px] border-white/5 p-4 md:p-6">
           {doc.video ? (
             <video
-              className="w-full rounded-2xl border border-white/10 shadow-xl"
+              className="w-full rounded-2xl border border-white/5 shadow-xl"
               controls
               src={doc.video}
             />
@@ -66,7 +66,7 @@ export default async function RenderDetail({ params }: { params: Promise<{ slug:
           {doc.prompt && (
             <div>
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Prompt</div>
-              <div className="mt-2 text-xs font-mono text-zinc-300 bg-white/5 border border-white/10 rounded-2xl p-3 leading-relaxed">
+              <div className="mt-2 text-xs font-mono text-zinc-300 bg-white/5 border border-white/5 rounded-2xl p-3 leading-relaxed">
                 {doc.prompt}
               </div>
             </div>

@@ -61,8 +61,8 @@ export default async function QueueTicketPage({ params }: { params: Promise<{ ti
 
       <div className="glass rounded-2xl border-white/5 p-5 space-y-3">
         <div className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Ticket JSON</div>
-        <pre className="overflow-x-auto rounded-xl border border-white/10 bg-black/50 p-4 text-xs text-zinc-200 font-mono leading-relaxed">
-{pretty(ticket.raw)}
+        <pre className="overflow-x-auto rounded-xl border border-white/5 bg-black/50 p-4 text-xs text-zinc-200 font-mono leading-relaxed">
+          {pretty(ticket.raw)}
         </pre>
       </div>
     </div>

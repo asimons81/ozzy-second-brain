@@ -22,7 +22,7 @@ export default function NoteLoading() {
             ))}
           </div>
         </div>
-        <div className="glass rounded-[24px] border-white/10 p-4 md:p-5 h-fit space-y-6">
+        <div className="glass rounded-[24px] border-white/5 p-4 md:p-5 h-fit space-y-6">
           <div className="h-3 w-20 bg-white/5 rounded" />
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="space-y-2">

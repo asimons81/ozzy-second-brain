@@ -10,19 +10,19 @@ export default async function ApprovedIdeasPage() {
   return (
     <div className="max-w-5xl mx-auto py-12 md:py-24 px-4 md:px-8 space-y-16">
       <header className="space-y-4">
-        <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 px-4 py-1 rounded-full">
-            <CheckCircle size={14} className="text-emerald-400" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Production Pipeline</span>
+        <div className="inline-flex items-center space-x-2 bg-brand/10 border border-brand/20 px-4 py-1 rounded-full">
+          <CheckCircle size={14} className="text-brand" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-brand">Production Pipeline</span>
         </div>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-none italic uppercase">
-              Approved <br/> <span className="text-zinc-500">Ideas</span>
+            Approved <br /> <span className="text-zinc-500">Ideas</span>
           </h2>
           <div className="flex items-center space-x-4 pb-2">
-             <div className="text-right hidden md:block">
-               <div className="text-2xl font-black italic tracking-tight leading-none">{approvedIdeas.length}</div>
-               <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">In Pipeline</div>
-             </div>
+            <div className="text-right hidden md:block">
+              <div className="text-2xl font-black italic tracking-tight leading-none">{approvedIdeas.length}</div>
+              <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">In Pipeline</div>
+            </div>
           </div>
         </div>
       </header>
@@ -46,17 +46,17 @@ export default async function ApprovedIdeasPage() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-3 flex-1 min-w-0">
                   <div className="flex items-center space-x-2">
-                    <span className="text-[10px] font-black bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                    <span className="text-[10px] font-black bg-brand/20 text-brand px-2 py-0.5 rounded-full border border-brand/20">
                       APPROVED
                     </span>
                     {idea.outputExists && (
-                      <span className="text-[10px] font-black bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20">
+                      <span className="text-[10px] font-black bg-brand/20 text-brand px-2 py-0.5 rounded-full border border-brand/20">
                         RENDERED
                       </span>
                     )}
                   </div>
                   <div>
-                    <Link href={`/docs/approved-ideas/${idea.slug}`} className="text-2xl font-black italic tracking-tight hover:text-emerald-400 transition-colors block truncate">
+                    <Link href={`/docs/approved-ideas/${idea.slug}`} className="text-2xl font-black italic tracking-tight hover:text-brand transition-colors block truncate">
                       {idea.title}
                     </Link>
                   </div>
@@ -79,7 +79,7 @@ export default async function ApprovedIdeasPage() {
                   {idea.outputExists && idea.outputHref && (
                     <Link
                       href={idea.outputHref}
-                      className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white transition-all"
+                      className="p-3 rounded-2xl bg-brand/10 border border-brand/20 text-brand hover:bg-brand hover:text-black transition-all"
                       title="View Render"
                     >
                       <Play size={20} />

@@ -30,7 +30,7 @@ export default async function RootLayout({
       <body className="bg-black text-zinc-100 flex flex-col md:flex-row h-screen overflow-hidden noise">
         <Sidebar />
         <main className="flex-1 overflow-y-auto relative z-10 p-4 md:p-0">
-          <div className="sticky top-0 z-20 px-4 md:px-12 py-4 md:py-6 bg-black/40 backdrop-blur-md border-b border-white/5 flex items-center justify-between gap-4">
+          <div className="sticky top-0 z-20 px-4 md:px-12 py-4 md:py-6 glass border-x-0 border-t-0 border-b border-white/5 flex items-center justify-between gap-4">
             <div className="space-y-3 min-w-0">
               <div className="hidden md:block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">OZZY BRAIN</div>
               <div className="hidden md:block text-sm font-bold text-zinc-300">Capture + Command Palette + Unified Dashboard</div>

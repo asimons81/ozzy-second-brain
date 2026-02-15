@@ -173,13 +173,13 @@ export default async function NowPage() {
 
           <div className="space-y-2">
             {approvedPending.length === 0 && openTickets.length === 0 && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-zinc-500">
+              <div className="rounded-2xl border border-white/5 bg-white/5 px-3 py-3 text-sm text-zinc-500">
                 No active approvals or open Sid tickets.
               </div>
             )}
 
             {approvedPending.slice(0, 5).map((idea) => (
-              <div key={`approved-${idea.slug}`} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 flex items-center justify-between gap-3">
+              <div key={`approved-${idea.slug}`} className="rounded-2xl border border-white/5 bg-white/5 px-3 py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-sm font-bold text-zinc-100 truncate">{idea.title}</div>
                   <div className="text-[11px] font-mono text-zinc-600 mt-1">Approved idea awaiting output</div>
@@ -191,7 +191,7 @@ export default async function NowPage() {
             ))}
 
             {openTickets.slice(0, 5).map((ticket) => (
-              <div key={`ticket-${ticket.key}`} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 flex items-center justify-between gap-3">
+              <div key={`ticket-${ticket.key}`} className="rounded-2xl border border-white/5 bg-white/5 px-3 py-3 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-sm font-bold text-zinc-100 truncate">{ticket.sourceIdeaSlug ?? ticket.id}</div>
                   <div className="text-[11px] font-mono text-zinc-600 mt-1">
@@ -218,7 +218,7 @@ export default async function NowPage() {
           </div>
           <div className="space-y-2">
             {recents.length === 0 && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-zinc-500">
+              <div className="rounded-2xl border border-white/5 bg-white/5 px-3 py-3 text-sm text-zinc-500">
                 No recent note activity yet.
               </div>
             )}
@@ -226,7 +226,7 @@ export default async function NowPage() {
               <Link
                 key={item.key}
                 href={item.path}
-                className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10 transition-all"
+                className="block rounded-2xl border border-white/5 bg-white/5 px-4 py-3 hover:bg-white/10 transition-all"
               >
                 <div className="text-sm font-bold text-zinc-100 truncate">{item.title}</div>
                 <div className="text-[11px] font-mono text-zinc-600 mt-1">{item.category} - {fmt(item.modifiedAt)}</div>
@@ -249,7 +249,7 @@ export default async function NowPage() {
                 <Link
                   key={`${note.category}/${note.slug}`}
                   href={note.href}
-                  className="block rounded-2xl border border-white/10 bg-white/5 px-3 py-3 hover:bg-white/10 transition-all"
+                  className="block rounded-2xl border border-white/5 bg-white/5 px-3 py-3 hover:bg-white/10 transition-all"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
@@ -305,7 +305,7 @@ export default async function NowPage() {
           </div>
           <div className="space-y-2">
             {queueTop.length === 0 && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-zinc-500">
+              <div className="rounded-2xl border border-white/5 bg-white/5 px-3 py-3 text-sm text-zinc-500">
                 Sid queue is empty.
               </div>
             )}
@@ -313,7 +313,7 @@ export default async function NowPage() {
               <Link
                 key={ticket.key}
                 href={ticket.href}
-                className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10 transition-all"
+                className="block rounded-2xl border border-white/5 bg-white/5 px-4 py-3 hover:bg-white/10 transition-all"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
@@ -322,10 +322,10 @@ export default async function NowPage() {
                   </div>
                   <span
                     className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border ${ticket.derivedStatus === 'produced'
-                        ? 'border-brand/30 bg-brand/10 text-brand'
-                        : ticket.isStale
-                          ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-200'
-                          : 'border-zinc-500/30 bg-zinc-500/10 text-zinc-300'
+                      ? 'border-brand/30 bg-brand/10 text-brand'
+                      : ticket.isStale
+                        ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-200'
+                        : 'border-zinc-500/30 bg-zinc-500/10 text-zinc-300'
                       }`}
                   >
                     {ticket.derivedStatus === 'produced' ? 'Produced' : ticket.isStale ? 'Stale' : 'Pending'}
@@ -348,7 +348,7 @@ export default async function NowPage() {
                 href={system.href}
                 target={system.href.startsWith('http') ? '_blank' : undefined}
                 rel={system.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 hover:bg-white/10 transition-all"
+                className="block rounded-2xl border border-white/5 bg-white/5 px-4 py-3 hover:bg-white/10 transition-all"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-bold text-zinc-100">{system.label}</div>

@@ -65,7 +65,7 @@ export function Sidebar() {
 
   return (
     <>
-      <div className="md:hidden flex items-center justify-between p-4 bg-zinc-900/50 backdrop-blur-md border-b border-white/5 z-50">
+      <div className="md:hidden flex items-center justify-between p-4 glass border-x-0 border-t-0 border-b border-white/5 z-50">
         <div className="flex items-center gap-2">
           <div className="bg-brand p-1.5 rounded-lg">
             <Rocket size={18} className="text-white" />

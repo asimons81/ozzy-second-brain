@@ -23,9 +23,9 @@ export default async function ApprovedIdeaPage({ params }: { params: Promise<{ s
       </Link>
 
       <header className="space-y-4">
-        <div className="inline-flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 px-4 py-1 rounded-full">
-            <CheckCircle size={14} className="text-emerald-400" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Approved</span>
+        <div className="inline-flex items-center space-x-2 bg-brand/10 border border-brand/20 px-4 py-1 rounded-full">
+          <CheckCircle size={14} className="text-brand" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-brand">Approved</span>
         </div>
 
         <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-none italic uppercase">

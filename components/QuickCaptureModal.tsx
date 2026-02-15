@@ -259,7 +259,7 @@ export function QuickCaptureModal({
                 disabled={!writesAllowed || !authenticated}
                 checked={requestReview}
                 onChange={(event) => setRequestReview(event.target.checked)}
-                className="w-4 h-4 rounded border-white/20 bg-black/40 text-brand accent-[#00f2ff] disabled:opacity-60"
+                className="w-4 h-4 rounded border-white/20 bg-black/40 text-brand accent-brand disabled:opacity-60"
               />
               <span className="text-xs font-bold text-zinc-400">Request agent review</span>
             </label>

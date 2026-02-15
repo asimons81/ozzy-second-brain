@@ -49,13 +49,12 @@ export default async function QueuePage() {
 
               <div className="flex items-center gap-2 flex-wrap">
                 <span
-                  className={`px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest ${
-                    ticket.derivedStatus === 'produced'
-                      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                  className={`px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest ${ticket.derivedStatus === 'produced'
+                      ? 'border-brand/30 bg-brand/10 text-brand'
                       : ticket.isStale
                         ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-200'
                         : 'border-zinc-500/30 bg-zinc-500/10 text-zinc-300'
-                  }`}
+                    }`}
                 >
                   {ticket.derivedStatus === 'produced' ? 'Produced' : ticket.isStale ? 'Stale' : 'Pending'}
                 </span>
