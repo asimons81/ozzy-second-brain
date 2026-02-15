@@ -62,3 +62,16 @@ npm run build
 rg -n "sid-queue|\\.archive|draft-content|assigned_to|source_idea" app/actions/ideas.ts app lib components
 rg -n "\\bfs\\b|\\bpath\\b" app/actions/ideas.ts
 ```
+
+## Idea decisions history API
+Fetch last 10 decisions:
+```bash
+curl -sS "http://localhost:3000/api/ideas/decisions?limit=10" \
+  -H "Authorization: Bearer $SECOND_BRAIN_ADMIN_TOKEN"
+```
+
+Fetch decisions for a slug:
+```bash
+curl -sS "http://localhost:3000/api/ideas/decisions?slug=example-idea&limit=10" \
+  -H "Authorization: Bearer $SECOND_BRAIN_ADMIN_TOKEN"
+```
