@@ -51,6 +51,10 @@ function withNeedsWorkTags(raw: unknown) {
   return tags;
 }
 
+function withoutApprovedTag(raw: unknown) {
+  return normalizeTags(raw).filter((tag) => tag !== 'approved');
+}
+
 function titleFromMarkdown(markdown: string, fallbackSlug: string) {
   const parsed = matter(markdown);
   const data = parsed.data as Record<string, unknown>;
@@ -168,6 +172,73 @@ export async function needsWorkIdea(slug: string, feedback: string): Promise<Act
     return { success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to update idea.';
+    return { success: false, error: message };
+  }
+}
+
+export async function revertApprovedIdea(slug: string): Promise<ActionResult> {
+  const normalizedSlug = normalizeSlug(slug);
+  if (!normalizedSlug) return { success: false, error: 'Invalid slug' };
+
+  try {
+    const storage = await getStorageAdapter();
+    const markdown = await storage.readNote('approved-ideas', normalizedSlug);
+    const parsed = matter(markdown);
+    const data = parsed.data as Record<string, unknown>;
+    const ideaTitle = titleFromMarkdown(markdown, normalizedSlug);
+
+    const nextData: Record<string, unknown> = {
+      ...data,
+      tags: withoutApprovedTag(data.tags),
+    };
+    const updatedMarkdown = matter.stringify(parsed.content, nextData);
+
+    // Required ordering: move first, log decision second.
+    await storage.writeNote('ideas', normalizedSlug, updatedMarkdown);
+    await storage.deleteNote('approved-ideas', normalizedSlug);
+
+    const decision = await recordIdeaDecision({
+      ideaSlug: normalizedSlug,
+      decision: 'reverted',
+      ideaTitle,
+      reason: 'Undo approve',
+    });
+    if (!decision.ok) return decisionLoggingFailed();
+
+    revalidateIdeaPaths(normalizedSlug);
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to revert approved idea.';
+    return { success: false, error: message };
+  }
+}
+
+export async function rejectApprovedIdea(slug: string, reason: string): Promise<ActionResult> {
+  const normalizedSlug = normalizeSlug(slug);
+  if (!normalizedSlug) return { success: false, error: 'Invalid slug' };
+  const trimmedReason = reason.trim();
+  if (!trimmedReason) return { success: false, error: 'Reason is required.' };
+
+  try {
+    const storage = await getStorageAdapter();
+    const markdown = await storage.readNote('approved-ideas', normalizedSlug);
+    const ideaTitle = titleFromMarkdown(markdown, normalizedSlug);
+
+    // Required ordering: delete first, log decision second.
+    await storage.deleteNote('approved-ideas', normalizedSlug);
+
+    const decision = await recordIdeaDecision({
+      ideaSlug: normalizedSlug,
+      decision: 'rejected',
+      ideaTitle,
+      reason: trimmedReason,
+    });
+    if (!decision.ok) return decisionLoggingFailed();
+
+    revalidateIdeaPaths(normalizedSlug);
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to reject approved idea.';
     return { success: false, error: message };
   }
 }

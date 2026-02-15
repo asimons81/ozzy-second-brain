@@ -2,7 +2,7 @@ import 'server-only';
 
 import { getCloudflareContext } from '@opennextjs/cloudflare/cloudflare-context';
 
-export type IdeaDecision = 'approved' | 'rejected' | 'needs-work';
+export type IdeaDecision = 'approved' | 'rejected' | 'needs-work' | 'reverted';
 
 export type RecordIdeaDecisionInput = {
   ideaSlug: string;
