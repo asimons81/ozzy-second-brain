@@ -1,4 +1,4 @@
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getCloudflareContext } from '@opennextjs/cloudflare/cloudflare-context';
 
 export async function getAdminTokenSecret(): Promise<string | null> {
   const processToken = process.env.SECOND_BRAIN_ADMIN_TOKEN?.trim();

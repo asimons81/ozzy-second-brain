@@ -94,7 +94,7 @@ function renderRuntimeError(message: string, dataDir: string) {
   return `${message} Running in read-only mode (${dataDir}). Configure D1 for durable writes in Cloudflare.`;
 }
 
-export async function createNoteOnDisk(input: CreateNoteInput): Promise<NoteWriteResult> {
+export async function createNote(input: CreateNoteInput): Promise<NoteWriteResult> {
   const title = input.title.trim();
   if (!title) {
     return { success: false, error: 'Title is required.' };
@@ -146,7 +146,7 @@ export async function createNoteOnDisk(input: CreateNoteInput): Promise<NoteWrit
   }
 }
 
-export async function updateNoteOnDisk(input: UpdateNoteInput): Promise<NoteWriteResult> {
+export async function updateNote(input: UpdateNoteInput): Promise<NoteWriteResult> {
   const title = input.title.trim();
   if (!title) {
     return { success: false, error: 'Title is required.' };
@@ -186,7 +186,7 @@ export async function updateNoteOnDisk(input: UpdateNoteInput): Promise<NoteWrit
   }
 }
 
-export async function deleteNoteOnDisk(input: DeleteNoteInput): Promise<NoteWriteResult> {
+export async function deleteNote(input: DeleteNoteInput): Promise<NoteWriteResult> {
   const slug = assertSafeExistingSlug(input.slug);
   if (!slug) {
     return { success: false, error: 'Invalid note slug.' };
@@ -211,3 +211,8 @@ export async function deleteNoteOnDisk(input: DeleteNoteInput): Promise<NoteWrit
 export function toSafeSlug(value: string) {
   return sanitizeSlug(value);
 }
+
+// Backward-compat exports for legacy imports.
+export const createNoteOnDisk = createNote;
+export const updateNoteOnDisk = updateNote;
+export const deleteNoteOnDisk = deleteNote;

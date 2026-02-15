@@ -5,8 +5,8 @@ import { categories } from '@/lib/categories';
 import { getStorageRuntimeInfo } from '@/lib/storage';
 import { rebuildGraphIndex } from '@/lib/graph';
 import {
-  createNoteOnDisk,
-  updateNoteOnDisk,
+  createNote as createStoredNote,
+  updateNote as updateStoredNote,
   type CreateNoteInput,
   type UpdateNoteInput,
 } from '@/lib/notes';
@@ -33,7 +33,7 @@ function revalidateNotePaths(category: string, slug: string) {
 }
 
 export async function createNote(input: CreateNoteInput) {
-  const result = await createNoteOnDisk(input);
+  const result = await createStoredNote(input);
 
   if (result.success) {
     try {
@@ -49,7 +49,7 @@ export async function createNote(input: CreateNoteInput) {
 }
 
 export async function updateNote(input: UpdateNoteInput) {
-  const result = await updateNoteOnDisk(input);
+  const result = await updateStoredNote(input);
 
   if (result.success) {
     try {
