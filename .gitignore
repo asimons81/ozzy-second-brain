@@ -57,3 +57,6 @@ next-env.d.ts
 .open-next/
 .wrangler/
 .next/
+
+# build artifact
+public/BUILD_ID
