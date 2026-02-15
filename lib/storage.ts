@@ -2,9 +2,11 @@ import 'server-only';
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { getCloudflareContext } from '@opennextjs/cloudflare/cloudflare-context';
+import { D1Storage } from "./storage/d1";
 import { getCategoryByKey } from '@/lib/categories';
 
-export type StorageMode = 'local' | 'tmp';
+export type StorageMode = 'local' | 'asset-readonly' | 'd1';
 
 export type RecentsEntry = {
   key: string;
@@ -16,10 +18,12 @@ export type RecentsEntry = {
 };
 
 export interface StorageAdapter {
-  readNote(category: string, slug: string): string;
-  writeNote(category: string, slug: string, md: string): void;
-  listNotes(category: string): string[];
-  updateRecents(entry: RecentsEntry): void;
+  readNote(category: string, slug: string): Promise<string>;
+  writeNote(category: string, slug: string, md: string): Promise<void>;
+  deleteNote(category: string, slug: string): Promise<void>;
+  listNotes(category: string): Promise<string[]>;
+  updateRecents(entry: RecentsEntry): Promise<void>;
+  readRecents(limit?: number): Promise<RecentsEntry[]>;
 }
 
 export type StorageRuntimeInfo = {
@@ -30,29 +34,34 @@ export type StorageRuntimeInfo = {
   warningBanner: string | null;
 };
 
-const DEFAULT_TMP_DIR = '/tmp/second-brain';
 const RECENTS_LIMIT = 50;
 
-export function getRuntimeLabel() {
-  if (process.env.CF_WORKER === '1') return 'workers';
-  if (process.env.NEXT_RUNTIME === 'edge') return 'edge';
-  return 'node';
+type ResolvedStorage = {
+  adapter: StorageAdapter;
+  info: StorageRuntimeInfo;
+};
+
+let resolvedStoragePromise: Promise<ResolvedStorage> | null = null;
+const DEBUG_ENABLED = process.env.SECOND_BRAIN_DEBUG === '1';
+
+type AssetsBinding = {
+  fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
+};
+
+function debugLog(message: string, data?: Record<string, unknown>) {
+  if (!DEBUG_ENABLED) return;
+  console.info(`[storage] ${message}`, data ?? {});
 }
 
-function resolveStorageMode(): StorageMode {
-  const configured = process.env.SECOND_BRAIN_STORAGE;
-  if (configured === 'local' || configured === 'tmp') {
-    return configured;
+async function getCloudflareContextSafe() {
+  try {
+    return await getCloudflareContext({ async: true });
+  } catch {
+    return null;
   }
-
-  if (process.env.VERCEL || process.env.CF_WORKER === '1' || process.env.CF_PAGES === '1') {
-    return 'tmp';
-  }
-
-  return 'local';
 }
 
-function resolveDataDir(mode: StorageMode): string {
+function resolveLocalDataDir() {
   const configured = process.env.SECOND_BRAIN_DATA_DIR;
   if (configured && configured.trim()) {
     return path.isAbsolute(configured)
@@ -60,22 +69,7 @@ function resolveDataDir(mode: StorageMode): string {
       : path.join(process.cwd(), configured);
   }
 
-  if (process.env.CF_WORKER === '1' || process.env.CF_PAGES === '1') {
-    return path.join(process.cwd(), 'public', 'content');
-  }
-
-  if (mode === 'tmp') {
-    return DEFAULT_TMP_DIR;
-  }
-
   return path.join(process.cwd(), 'content');
-}
-
-function resolveWritesAllowed(mode: StorageMode) {
-  if (process.env.CF_WORKER === '1' || process.env.CF_PAGES === '1') {
-    return false;
-  }
-  return mode === 'local';
 }
 
 function assertKnownCategory(category: string) {
@@ -154,20 +148,24 @@ function writeRecents(baseDir: string, entry: RecentsEntry) {
 }
 
 class LocalFsStorage implements StorageAdapter {
-  constructor(private readonly baseDir: string) {}
+  constructor(
+    private readonly baseDir: string,
+    private readonly readOnly: boolean,
+  ) {}
 
-  readNote(category: string, slug: string) {
+  async readNote(category: string, slug: string) {
     const safeCategory = assertKnownCategory(category);
     const safe = assertSafeSlug(slug);
     const filePath = path.join(categoryDir(this.baseDir, safeCategory), `${safe}.md`);
     if (!fs.existsSync(filePath)) {
       throw new Error('Note not found.');
     }
+    debugLog('local readNote', { category: safeCategory, slug: safe, filePath });
     return fs.readFileSync(filePath, 'utf-8');
   }
 
-  writeNote(category: string, slug: string, md: string) {
-    if (!writesAllowed) {
+  async writeNote(category: string, slug: string, md: string) {
+    if (this.readOnly) {
       throw new Error('read-only deployment');
     }
 
@@ -178,52 +176,256 @@ class LocalFsStorage implements StorageAdapter {
     fs.writeFileSync(path.join(dir, `${safe}.md`), md, 'utf-8');
   }
 
-  listNotes(category: string) {
+  async deleteNote(category: string, slug: string) {
+    if (this.readOnly) {
+      throw new Error('read-only deployment');
+    }
+
+    const safeCategory = assertKnownCategory(category);
+    const safe = assertSafeSlug(slug);
+    const filePath = path.join(categoryDir(this.baseDir, safeCategory), `${safe}.md`);
+    if (!fs.existsSync(filePath)) {
+      throw new Error('Note not found.');
+    }
+
+    fs.unlinkSync(filePath);
+  }
+
+  async listNotes(category: string) {
     const safeCategory = assertKnownCategory(category);
     const dir = categoryDir(this.baseDir, safeCategory);
     if (!fs.existsSync(dir)) return [];
-    return fs
+    const notes = fs
       .readdirSync(dir)
       .filter((name) => name.endsWith('.md'))
       .map((name) => name.replace(/\.md$/, ''));
+    debugLog('local listNotes', { category: safeCategory, count: notes.length });
+    return notes;
   }
 
-  updateRecents(entry: RecentsEntry) {
-    if (!writesAllowed) return;
+  async updateRecents(entry: RecentsEntry) {
+    if (this.readOnly) return;
     writeRecents(this.baseDir, entry);
   }
+
+  async readRecents(limit = RECENTS_LIMIT) {
+    return readRecentsFromPath(recentsPath(this.baseDir), limit);
+  }
 }
 
-class VercelEphemeralStorage extends LocalFsStorage {}
+class CloudflareAssetsStorage implements StorageAdapter {
+  private indexPromise: Promise<Record<string, string[]>> | null = null;
 
-const mode = resolveStorageMode();
-const dataDir = resolveDataDir(mode);
-const writesAllowed = resolveWritesAllowed(mode);
-const adapter: StorageAdapter =
-  mode === 'tmp'
-    ? new VercelEphemeralStorage(dataDir)
-    : new LocalFsStorage(dataDir);
+  constructor(private readonly assets: AssetsBinding) {}
 
-export function getStorageAdapter() {
-  return adapter;
+  private assetUrl(pathname: string) {
+    return new URL(pathname, 'https://assets.local');
+  }
+
+  private async fetchAsset(pathname: string) {
+    const request = new Request(this.assetUrl(pathname).toString());
+    const response = await this.assets.fetch(request);
+    debugLog('assets fetch', { pathname, status: response.status });
+    return response;
+  }
+
+  private async readIndex() {
+    if (!this.indexPromise) {
+      this.indexPromise = (async () => {
+        const response = await this.fetchAsset('/content/index.json');
+        if (!response.ok) {
+          throw new Error(`Unable to read /content/index.json (status ${response.status})`);
+        }
+
+        const parsed = (await response.json()) as Record<string, unknown>;
+        const index: Record<string, string[]> = {};
+
+        for (const [key, value] of Object.entries(parsed)) {
+          if (!Array.isArray(value)) continue;
+          index[key] = value.filter((item): item is string => typeof item === 'string');
+        }
+
+        return index;
+      })();
+    }
+
+    return this.indexPromise;
+  }
+
+  async readNote(category: string, slug: string) {
+    const safeCategory = assertKnownCategory(category);
+    const safeSlug = assertSafeSlug(slug);
+    const pathname = `/content/${encodeURIComponent(safeCategory)}/${encodeURIComponent(safeSlug)}.md`;
+    const response = await this.fetchAsset(pathname);
+
+    if (response.status === 404) {
+      throw new Error('Note not found.');
+    }
+
+    if (!response.ok) {
+      throw new Error(`Unable to read note asset (status ${response.status})`);
+    }
+
+    return response.text();
+  }
+
+  async writeNote() {
+    throw new Error('read-only deployment');
+  }
+
+  async deleteNote() {
+    throw new Error('read-only deployment');
+  }
+
+  async listNotes(category: string) {
+    const safeCategory = assertKnownCategory(category);
+    const index = await this.readIndex();
+    const notes = index[safeCategory] ?? [];
+    debugLog('assets listNotes', { category: safeCategory, count: notes.length });
+    return [...notes];
+  }
+
+  async updateRecents() {
+    // Recents index is not writable in assets-backed runtime.
+  }
+
+  async readRecents() {
+    return [];
+  }
 }
 
-export function getStorageRuntimeInfo(): StorageRuntimeInfo {
-  const isEphemeral = mode === 'tmp';
+class MissingAssetsStorage implements StorageAdapter {
+  async readNote(_category: string, _slug: string): Promise<string> {
+    throw new Error('Note not found.');
+  }
 
-  return {
-    mode,
-    dataDir,
-    isEphemeral,
-    writesAllowed,
-    warningBanner: writesAllowed
-      ? isEphemeral
-        ? 'Ephemeral storage: saves may not persist after redeploy/cold start. Configure persistent storage for durable saves.'
-        : null
-      : 'read-only deployment',
+  async writeNote() {
+    throw new Error('read-only deployment');
+  }
+
+  async deleteNote() {
+    throw new Error('read-only deployment');
+  }
+
+  async listNotes() {
+    return [];
+  }
+
+  async updateRecents() {
+    // No-op in read-only fallback.
+  }
+
+  async readRecents() {
+    return [];
+  }
+}
+
+async function resolveCloudflareAssetsBinding() {
+  const context = await getCloudflareContextSafe();
+  if (!context) return null;
+
+  if (context.env.ASSETS) {
+    return context.env.ASSETS;
+  }
+
+  debugLog("cloudflare context missing ASSETS binding");
+  return null;
+}
+
+async function resolveStorage(): Promise<ResolvedStorage> {
+  const localDataDir = resolveLocalDataDir();
+
+  const cf = await getCloudflareContextSafe();
+  if (!cf) {
+    const resolved: ResolvedStorage = {
+      adapter: new LocalFsStorage(localDataDir, false),
+      info: {
+        mode: 'local',
+        dataDir: localDataDir,
+        isEphemeral: false,
+        writesAllowed: true,
+        warningBanner: null,
+      },
+    };
+    debugLog('runtime selected', {
+      mode: resolved.info.mode,
+      dataDir: resolved.info.dataDir,
+      writesAllowed: resolved.info.writesAllowed,
+    });
+    return resolved;
+  }
+
+  const assets = await resolveCloudflareAssetsBinding();
+
+  if (cf.env.SECOND_BRAIN_DB) {
+    const fallback = assets ? new CloudflareAssetsStorage(assets) : undefined;
+    debugLog("runtime selected", { mode: "d1" });
+    return {
+      adapter: new D1Storage(cf.env.SECOND_BRAIN_DB, fallback),
+      info: {
+        mode: "d1",
+        dataDir: "D1",
+        isEphemeral: false,
+        writesAllowed: true,
+        warningBanner: null,
+      },
+    };
+  }
+  if (assets) {
+    const resolved: ResolvedStorage = {
+      adapter: new CloudflareAssetsStorage(assets),
+      info: {
+        mode: 'asset-readonly',
+        dataDir: '/content (ASSETS)',
+        isEphemeral: false,
+        writesAllowed: false,
+        warningBanner: 'read-only deployment',
+      },
+    };
+    debugLog('runtime selected', {
+      mode: resolved.info.mode,
+      dataDir: resolved.info.dataDir,
+      writesAllowed: resolved.info.writesAllowed,
+    });
+    return resolved;
+  }
+
+  const resolved: ResolvedStorage = {
+    adapter: new MissingAssetsStorage(),
+    info: {
+      mode: 'asset-readonly',
+      dataDir: '/content (ASSETS missing)',
+      isEphemeral: false,
+      writesAllowed: false,
+      warningBanner: 'read-only deployment',
+    },
   };
+  debugLog('runtime selected', {
+    mode: resolved.info.mode,
+    dataDir: resolved.info.dataDir,
+    writesAllowed: resolved.info.writesAllowed,
+    fallback: 'ASSETS binding missing',
+  });
+  return resolved;
 }
 
-export function readRecents(limit = RECENTS_LIMIT) {
-  return readRecentsFromPath(recentsPath(dataDir), limit);
+async function getResolvedStorage() {
+  if (!resolvedStoragePromise) {
+    resolvedStoragePromise = resolveStorage();
+  }
+
+  return resolvedStoragePromise;
+}
+
+export async function getStorageAdapter() {
+  return (await getResolvedStorage()).adapter;
+}
+
+export async function getStorageRuntimeInfo(): Promise<StorageRuntimeInfo> {
+  return (await getResolvedStorage()).info;
+}
+
+export async function readRecents(limit = RECENTS_LIMIT) {
+  const adapter = await getStorageAdapter();
+  return adapter.readRecents(limit);
 }
